@@ -25,7 +25,7 @@ func (server *Server) GetRetailerSiteRelationByRetailerID(c *gin.Context) {
 
 	retailerSiteRelationReceived, err := retailerSiteRelation.FindAllRetailerSiteRelationByRetailerID(server.DB, convertedRetailerID)
 	if err != nil {
-		errList["no_site"] = "No relation found"
+		errList["no_relation"] = "No relation found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
@@ -79,5 +79,107 @@ func (server *Server) CreateRetailerSiteRelation(c *gin.Context) {
 	}
 	c.JSON(http.StatusCreated, gin.H{
 		"response": relationCreated,
+	})
+}
+
+func (server *Server) UpdateRetailerSiteRelation(c *gin.Context) {
+	errList = map[string]string{}
+	relationID := c.Param("relation_id")
+
+	relationid, err := strconv.ParseUint(relationID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalRelation := models.RetailerSiteRelation{}
+	err = server.DB.Debug().Model(models.RetailerSiteRelation{}).Where("id = ?", relationid).Order("id desc").Take(&originalRelation).Error
+	if err != nil {
+		errList["no_relation"] = "No relation found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		errList["invalid_body"] = "Unable to get request"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	relation := models.RetailerSiteRelation{}
+	err = json.Unmarshal(body, &relation)
+	if err != nil {
+		errList["unmarshal_error"] = "Can not unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+	relation.ID = originalRelation.ID
+
+	relation.Prepare()
+	errorMessages := relation.Validate()
+	if len(errorMessages) > 0 {
+		errList = errorMessages
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	relationUpdated, err := relation.UpdateRetailerSiteRelation(server.DB)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"response": relationUpdated,
+	})
+}
+
+func (server *Server) UnlinkRetailerSiteRelation(c *gin.Context) {
+	errList = map[string]string{}
+	relationID := c.Param("relation_id")
+
+	relationid, err := strconv.ParseUint(relationID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalRelation := models.RetailerSiteRelation{}
+	err = server.DB.Debug().Model(models.RetailerSiteRelation{}).Where("id = ?", relationid).Order("id desc").Take(&originalRelation).Error
+	if err != nil {
+		errList["no_relation"] = "No relation found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	_, err = originalRelation.UnlinkRetailerSiteRelation(server.DB)
+	if err != nil {
+		errList["other_error"] = "Please try again later"
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"response": "Selected relation has been deleted successfully.",
 	})
 }

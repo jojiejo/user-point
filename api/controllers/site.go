@@ -16,7 +16,23 @@ func (server *Server) GetSites(c *gin.Context) {
 
 	sites, err := site.FindAllSites(server.DB)
 	if err != nil {
-		errList["No_sites"] = "No site found"
+		errList["no_site"] = "No site found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"response": sites,
+	})
+}
+
+func (server *Server) GetLatestSites(c *gin.Context) {
+	site := models.Site{}
+
+	sites, err := site.FindAllLatestSites(server.DB)
+	if err != nil {
+		errList["no_retailer"] = "No retailer found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
@@ -31,7 +47,7 @@ func (server *Server) GetSite(c *gin.Context) {
 	siteID := c.Param("id")
 	convertedSiteID, err := strconv.ParseUint(siteID, 10, 64)
 	if err != nil {
-		errList["Invalid_request"] = "Invalid Request"
+		errList["invalid_request"] = "Invalid request"
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": errList,
 		})
@@ -41,7 +57,33 @@ func (server *Server) GetSite(c *gin.Context) {
 
 	siteReceived, err := site.FindSiteByID(server.DB, convertedSiteID)
 	if err != nil {
-		errList["no_site"] = "No Site Found"
+		errList["no_site"] = "No site found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"response": siteReceived,
+	})
+}
+
+func (server *Server) GetSiteHistory(c *gin.Context) {
+	originalSiteID := c.Param("id")
+	convertedOriginalSiteID, err := strconv.ParseUint(originalSiteID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+	site := models.Site{}
+
+	siteReceived, err := site.FindSiteHistoryByID(server.DB, convertedOriginalSiteID)
+	if err != nil {
+		errList["no_site"] = "No site found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
@@ -58,18 +100,18 @@ func (server *Server) CreateSite(c *gin.Context) {
 
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		errList["Invalid_body"] = "Unable to get request"
+		errList["invalid_body"] = "Unable to get request"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,
 		})
 		return
 	}
-	site := models.Site{}
 
+	site := models.Site{}
 	err = json.Unmarshal(body, &site)
 	if err != nil {
 		fmt.Println(err.Error())
-		errList["Unmarshal_error"] = "Cannot unmarshal body"
+		errList["unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,
 		})
@@ -104,7 +146,7 @@ func (server *Server) UpdateSite(c *gin.Context) {
 
 	siteid, err := strconv.ParseUint(siteID, 10, 64)
 	if err != nil {
-		errList["Invalid_request"] = "Invalid Request"
+		errList["invalid_request"] = "Invalid request"
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": errList,
 		})
@@ -114,7 +156,7 @@ func (server *Server) UpdateSite(c *gin.Context) {
 	originalSite := models.Site{}
 	err = server.DB.Debug().Model(models.Site{}).Where("id = ?", siteid).Order("id desc").Take(&originalSite).Error
 	if err != nil {
-		errList["No_post"] = "No Site Found"
+		errList["no_post"] = "No site found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
@@ -123,7 +165,7 @@ func (server *Server) UpdateSite(c *gin.Context) {
 
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		errList["Invalid_body"] = "Unable to get request"
+		errList["invalid_body"] = "Unable to get request"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,
 		})
@@ -133,7 +175,7 @@ func (server *Server) UpdateSite(c *gin.Context) {
 	site := models.Site{}
 	err = json.Unmarshal(body, &site)
 	if err != nil {
-		errList["Unmarshal_error"] = "Cannot unmarshal body"
+		errList["unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,
 		})
@@ -163,13 +205,13 @@ func (server *Server) UpdateSite(c *gin.Context) {
 	})
 }
 
-func (server *Server) DeleteSite(c *gin.Context) {
+func (server *Server) DeactivateSite(c *gin.Context) {
 	errList = map[string]string{}
 	siteID := c.Param("id")
 
 	siteid, err := strconv.ParseUint(siteID, 10, 64)
 	if err != nil {
-		errList["Invalid_request"] = "Invalid Request"
+		errList["invalid_request"] = "Invalid request"
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": errList,
 		})
@@ -179,16 +221,114 @@ func (server *Server) DeleteSite(c *gin.Context) {
 	originalSite := models.Site{}
 	err = server.DB.Debug().Model(models.Site{}).Where("id = ?", siteid).Order("id desc").Take(&originalSite).Error
 	if err != nil {
-		errList["No_post"] = "No Site Found"
+		errList["no_site"] = "No site found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
 		return
 	}
 
-	_, err = originalSite.DeleteSite(server.DB)
+	_, err = originalSite.DeactivateSite(server.DB)
 	if err != nil {
-		errList["Other_error"] = "Please try again later"
+		errList["other_error"] = "Please try again later"
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"response": "Selected site has been deactivated successfully.",
+	})
+}
+
+func (server *Server) ReactivateSite(c *gin.Context) {
+	errList = map[string]string{}
+	siteID := c.Param("id")
+
+	siteid, err := strconv.ParseUint(siteID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalSite := models.Site{}
+	err = server.DB.Debug().Unscoped().Model(models.Site{}).Where("id = ?", siteid).Order("id desc").Take(&originalSite).Error
+	if err != nil {
+		errList["no_site"] = "No site found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	if originalSite.DeletedAt == nil {
+		errList["status_unprocessed"] = "The site has not been deactivated"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	if originalSite.ReactivatedAt != nil {
+		errList["status_unprocessed"] = "The site has been reactivated in prior"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalSite.Prepare()
+	errorMessages := originalSite.Validate()
+	if len(errorMessages) > 0 {
+		errList = errorMessages
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	siteReactivated, err := originalSite.ReactivateSite(server.DB)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"response": siteReactivated,
+	})
+}
+
+/*func (server *Server) TerminateSiteNow(c *gin.Context) {
+	errList = map[string]string{}
+	siteID := c.Param("id")
+
+	siteid, err := strconv.ParseUint(siteID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalSite := models.Site{}
+	err = server.DB.Debug().Model(models.Site{}).Where("id = ?", siteid).Order("id desc").Take(&originalSite).Error
+	if err != nil {
+		errList["no_post"] = "No site found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	_, err = originalSite.TerminateSiteNow(server.DB)
+	if err != nil {
+		errList["other_error"] = "Please try again later"
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": errList,
 		})
@@ -198,5 +338,61 @@ func (server *Server) DeleteSite(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"response": "Selected site has been deleted successfully.",
 	})
-
 }
+
+func (server *Server) TerminateSiteLater(c *gin.Context) {
+	errList = map[string]string{}
+	siteID := c.Param("id")
+
+	siteid, err := strconv.ParseUint(siteID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalSite := models.Site{}
+	err = server.DB.Debug().Model(models.Site{}).Where("id = ?", siteid).Order("id desc").Take(&originalSite).Error
+	if err != nil {
+		errList["no_retailer"] = "No retailer found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		errList["invalid_body"] = "Unable to get request"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	site := models.Site{}
+	err = json.Unmarshal(body, &site)
+	if err != nil {
+		errList["unmarshal_error"] = "Can not unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+	site.ID = originalSite.ID
+
+	_, err = site.TerminateSiteLater(server.DB)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"response": "Selected site will be terminated at given time.",
+	})
+}
+*/

@@ -16,7 +16,23 @@ func (server *Server) GetTerminals(c *gin.Context) {
 
 	terminals, err := terminal.FindAllTerminals(server.DB)
 	if err != nil {
-		errList["No_terminals"] = "No terminal found"
+		errList["no_terminal"] = "No terminal found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"response": terminals,
+	})
+}
+
+func (server *Server) GetLatestTerminals(c *gin.Context) {
+	terminal := models.Terminal{}
+
+	terminals, err := terminal.FindAllLatestTerminals(server.DB)
+	if err != nil {
+		errList["no_terminal"] = "No terminal found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
@@ -31,7 +47,7 @@ func (server *Server) GetTerminal(c *gin.Context) {
 	terminalID := c.Param("id")
 	convertedTerminalID, err := strconv.ParseUint(terminalID, 10, 64)
 	if err != nil {
-		errList["Invalid_request"] = "Invalid Request"
+		errList["invalid_request"] = "Invalid request"
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": errList,
 		})
@@ -41,7 +57,33 @@ func (server *Server) GetTerminal(c *gin.Context) {
 
 	terminalReceived, err := terminal.FindTerminalByID(server.DB, convertedTerminalID)
 	if err != nil {
-		errList["no_terminal"] = "No terminal Found"
+		errList["no_terminal"] = "No terminal found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"response": terminalReceived,
+	})
+}
+
+func (server *Server) GetTerminalHistory(c *gin.Context) {
+	originalTerminalID := c.Param("id")
+	convertedOriginalTerminalID, err := strconv.ParseUint(originalTerminalID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	terminal := models.Terminal{}
+	terminalReceived, err := terminal.FindTerminalHistoryByID(server.DB, convertedOriginalTerminalID)
+	if err != nil {
+		errList["no_terminal"] = "No terminal found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
@@ -58,18 +100,18 @@ func (server *Server) CreateTerminal(c *gin.Context) {
 
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		errList["Invalid_body"] = "Unable to get request"
+		errList["invalid_body"] = "Unable to get request"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,
 		})
 		return
 	}
-	terminal := models.Terminal{}
 
+	terminal := models.Terminal{}
 	err = json.Unmarshal(body, &terminal)
 	if err != nil {
 		fmt.Println(err.Error())
-		errList["Unmarshal_error"] = "Cannot unmarshal body"
+		errList["unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,
 		})
@@ -86,7 +128,7 @@ func (server *Server) CreateTerminal(c *gin.Context) {
 		return
 	}
 
-	siteCreated, err := terminal.CreateTerminal(server.DB)
+	terminalCreated, err := terminal.CreateTerminal(server.DB)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
@@ -94,7 +136,7 @@ func (server *Server) CreateTerminal(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{
-		"response": siteCreated,
+		"response": terminalCreated,
 	})
 }
 
@@ -104,7 +146,7 @@ func (server *Server) UpdateTerminal(c *gin.Context) {
 
 	terminalid, err := strconv.ParseUint(terminalID, 10, 64)
 	if err != nil {
-		errList["Invalid_request"] = "Invalid Request"
+		errList["invalid_request"] = "Invalid request"
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": errList,
 		})
@@ -112,9 +154,9 @@ func (server *Server) UpdateTerminal(c *gin.Context) {
 	}
 
 	originalTerminal := models.Terminal{}
-	err = server.DB.Debug().Model(models.Site{}).Where("id = ?", terminalid).Order("id desc").Take(&originalTerminal).Error
+	err = server.DB.Debug().Model(models.Terminal{}).Where("id = ?", terminalid).Order("id desc").Take(&originalTerminal).Error
 	if err != nil {
-		errList["No_post"] = "No terminal found"
+		errList["no_post"] = "No terminal found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
@@ -123,7 +165,7 @@ func (server *Server) UpdateTerminal(c *gin.Context) {
 
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
-		errList["Invalid_body"] = "Unable to get request"
+		errList["invalid_body"] = "Unable to get request"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,
 		})
@@ -133,14 +175,14 @@ func (server *Server) UpdateTerminal(c *gin.Context) {
 	terminal := models.Terminal{}
 	err = json.Unmarshal(body, &terminal)
 	if err != nil {
-		errList["Unmarshal_error"] = "Cannot unmarshal body"
+		errList["unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,
 		})
 		return
 	}
-	terminal.ID = originalTerminal.ID
 
+	terminal.ID = originalTerminal.ID
 	terminal.Prepare()
 	errorMessages := terminal.Validate()
 	if len(errorMessages) > 0 {
@@ -163,13 +205,13 @@ func (server *Server) UpdateTerminal(c *gin.Context) {
 	})
 }
 
-func (server *Server) DeleteTerminal(c *gin.Context) {
+func (server *Server) DeactivateTerminal(c *gin.Context) {
 	errList = map[string]string{}
 	terminalID := c.Param("id")
 
 	terminalid, err := strconv.ParseUint(terminalID, 10, 64)
 	if err != nil {
-		errList["Invalid_request"] = "Invalid Request"
+		errList["invalid_request"] = "Invalid request"
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": errList,
 		})
@@ -177,18 +219,18 @@ func (server *Server) DeleteTerminal(c *gin.Context) {
 	}
 
 	originalTerminal := models.Terminal{}
-	err = server.DB.Debug().Model(models.Site{}).Where("id = ?", terminalid).Order("id desc").Take(&originalTerminal).Error
+	err = server.DB.Debug().Model(models.Terminal{}).Where("id = ?", terminalid).Order("id desc").Take(&originalTerminal).Error
 	if err != nil {
-		errList["No_post"] = "No Site Found"
+		errList["no_terminal"] = "No terminal found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
 		return
 	}
 
-	_, err = originalTerminal.DeleteTerminal(server.DB)
+	_, err = originalTerminal.DeactivateTerminal(server.DB)
 	if err != nil {
-		errList["Other_error"] = "Please try again later"
+		errList["other_error"] = "Please try again later"
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": errList,
 		})
@@ -196,7 +238,104 @@ func (server *Server) DeleteTerminal(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"response": "Selected terminal has been deleted successfully.",
+		"response": "Selected terminal has been deactivated successfully.",
 	})
-
 }
+
+func (server *Server) ReactivateTerminal(c *gin.Context) {
+	errList = map[string]string{}
+	terminalID := c.Param("id")
+
+	terminalid, err := strconv.ParseUint(terminalID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalTerminal := models.Terminal{}
+	err = server.DB.Debug().Unscoped().Model(models.Terminal{}).Where("id = ?", terminalid).Order("id desc").Take(&originalTerminal).Error
+	if err != nil {
+		errList["no_terminal"] = "No terminal found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	if originalTerminal.DeletedAt == nil {
+		errList["status_unprocessed"] = "The terminal has not been deactivated"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	if originalTerminal.ReactivatedAt != nil {
+		errList["status_unprocessed"] = "The retailer has been reactivated in prior"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalTerminal.Prepare()
+	errorMessages := originalTerminal.Validate()
+	if len(errorMessages) > 0 {
+		errList = errorMessages
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	terminalReactivated, err := originalTerminal.ReactivateTerminal(server.DB)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"response": terminalReactivated,
+	})
+}
+
+/*func (server *Server) TerminateTerminalLater(c *gin.Context) {
+	errList = map[string]string{}
+	terminalID := c.Param("id")
+
+	terminalid, err := strconv.ParseUint(terminalID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalTerminal := models.Terminal{}
+	err = server.DB.Debug().Model(models.Terminal{}).Where("id = ?", terminalid).Order("id desc").Take(&originalTerminal).Error
+	if err != nil {
+		errList["no_site"] = "No terminal found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	_, err = originalTerminal.TerminateTerminalLater(server.DB)
+	if err != nil {
+		errList["other_error"] = "Please try again later"
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"response": "Selected site will be terminated at given time.",
+	})
+}*/

@@ -27,6 +27,22 @@ func (server *Server) GetRetailers(c *gin.Context) {
 	})
 }
 
+func (server *Server) GetLatestRetailers(c *gin.Context) {
+	retailer := models.Retailer{}
+
+	retailers, err := retailer.FindAllLatestRetailers(server.DB)
+	if err != nil {
+		errList["no_retailer"] = "No retailer found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"response": retailers,
+	})
+}
+
 func (server *Server) GetRetailer(c *gin.Context) {
 	retailerID := c.Param("id")
 	convertedRetailerID, err := strconv.ParseUint(retailerID, 10, 64)
@@ -42,6 +58,32 @@ func (server *Server) GetRetailer(c *gin.Context) {
 	retailerReceived, err := retailer.FindRetailerByID(server.DB, convertedRetailerID)
 	if err != nil {
 		errList["no_retailer"] = "No Retailer Found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"response": retailerReceived,
+	})
+}
+
+func (server *Server) GetRetailerHistory(c *gin.Context) {
+	originalRetailerID := c.Param("id")
+	convertedOriginalRetailerID, err := strconv.ParseUint(originalRetailerID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+	retailer := models.Retailer{}
+
+	retailerReceived, err := retailer.FindRetailerHistoryByID(server.DB, convertedOriginalRetailerID)
+	if err != nil {
+		errList["no_retailer"] = "No retailer found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
@@ -86,15 +128,16 @@ func (server *Server) CreateRetailer(c *gin.Context) {
 		return
 	}
 
-	siteCreated, err := retailer.CreateRetailer(server.DB)
+	retailerCreated, err := retailer.CreateRetailer(server.DB)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
 		})
 		return
 	}
+
 	c.JSON(http.StatusCreated, gin.H{
-		"response": siteCreated,
+		"response": retailerCreated,
 	})
 }
 
@@ -151,7 +194,7 @@ func (server *Server) UpdateRetailer(c *gin.Context) {
 		return
 	}
 
-	siteUpdated, err := retailer.UpdateRetailer(server.DB)
+	retailerUpdated, err := retailer.UpdateRetailer(server.DB)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
@@ -159,17 +202,17 @@ func (server *Server) UpdateRetailer(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{
-		"response": siteUpdated,
+		"response": retailerUpdated,
 	})
 }
 
-func (server *Server) DeleteRetailer(c *gin.Context) {
+func (server *Server) DeactivateRetailer(c *gin.Context) {
 	errList = map[string]string{}
 	retailerID := c.Param("id")
 
 	retailerid, err := strconv.ParseUint(retailerID, 10, 64)
 	if err != nil {
-		errList["invalid_request"] = "invalid Request"
+		errList["invalid_request"] = "Invalid Request"
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": errList,
 		})
@@ -179,14 +222,14 @@ func (server *Server) DeleteRetailer(c *gin.Context) {
 	originalRetailer := models.Retailer{}
 	err = server.DB.Debug().Model(models.Retailer{}).Where("id = ?", retailerid).Order("id desc").Take(&originalRetailer).Error
 	if err != nil {
-		errList["no_site"] = "No site found"
+		errList["no_retailer"] = "No retailer found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
 		return
 	}
 
-	_, err = originalRetailer.DeleteRetailer(server.DB)
+	_, err = originalRetailer.DeactivateRetailer(server.DB)
 	if err != nil {
 		errList["other_error"] = "Please try again later"
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -196,9 +239,163 @@ func (server *Server) DeleteRetailer(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"response": "Selected retailer has been deleted successfully.",
+		"response": "Selected retailer has been deactivated successfully.",
 	})
 }
+
+func (server *Server) ReactivateRetailer(c *gin.Context) {
+	errList = map[string]string{}
+	retailerID := c.Param("id")
+
+	retailerid, err := strconv.ParseUint(retailerID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalRetailer := models.Retailer{}
+	err = server.DB.Debug().Unscoped().Model(models.Retailer{}).Where("id = ?", retailerid).Order("id desc").Take(&originalRetailer).Error
+	if err != nil {
+		errList["no_retailer"] = "No retailer found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalRetailer.Prepare()
+	errorMessages := originalRetailer.Validate()
+	if len(errorMessages) > 0 {
+		errList = errorMessages
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	if originalRetailer.DeletedAt == nil {
+		errList["status_unprocessed"] = "The retailer has not been deactivated"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	if originalRetailer.ReactivatedAt != nil {
+		errList["status_unprocessed"] = "The retailer has been reactivated in prior"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	retailerReactivated, err := originalRetailer.ReactivateRetailer(server.DB)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err,
+		})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"response": retailerReactivated,
+	})
+}
+
+/*func (server *Server) TerminateRetailerNow(c *gin.Context) {
+	errList = map[string]string{}
+	retailerID := c.Param("id")
+
+	retailerid, err := strconv.ParseUint(retailerID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid Request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalRetailer := models.Retailer{}
+	err = server.DB.Debug().Model(models.Retailer{}).Where("id = ?", retailerid).Order("id desc").Take(&originalRetailer).Error
+	if err != nil {
+		errList["no_site"] = "No retailer found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	_, err = originalRetailer.TerminateRetailerNow(server.DB)
+	if err != nil {
+		errList["other_error"] = "Please try again later"
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"response": "Selected retailer has been terminated successfully.",
+	})
+}
+
+func (server *Server) TerminateRetailerLater(c *gin.Context) {
+	errList = map[string]string{}
+	retailerID := c.Param("id")
+
+	retailerid, err := strconv.ParseUint(retailerID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalRetailer := models.Retailer{}
+	err = server.DB.Debug().Model(models.Retailer{}).Where("id = ?", retailerid).Order("id desc").Take(&originalRetailer).Error
+	if err != nil {
+		errList["no_retailer"] = "No retailer found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		errList["invalid_body"] = "Unable to get request"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	retailer := models.Retailer{}
+	err = json.Unmarshal(body, &retailer)
+	if err != nil {
+		errList["unmarshal_error"] = "Can not unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+	retailer.ID = originalRetailer.ID
+
+	_, err = retailer.TerminateRetailerLater(server.DB)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"response": "Selected retailer will be terminated at given time.",
+	})
+}*/
 
 func (server *Server) GetPaymentTerms(c *gin.Context) {
 	paymentTerm := models.RetailerPaymentTerm{}
