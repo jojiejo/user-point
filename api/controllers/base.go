@@ -25,10 +25,10 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 	DBURL := fmt.Sprintf("sqlserver://%s:%s@%s:%s?database=%s", DbUser, DbPassword, DbHost, DbPort, DbName)
 	server.DB, err = gorm.Open(Dbdriver, DBURL)
 	if err != nil {
-		fmt.Printf("Cannot connect to %s database", Dbdriver)
+		log.Printf("Cannot connect to %s database", Dbdriver)
 		log.Fatal("This is the error:", err)
 	} else {
-		fmt.Printf("We are connected to the %s database", Dbdriver)
+		log.Printf("The service has been connected to the %s database", Dbdriver)
 	}
 
 	gin.SetMode(gin.ReleaseMode)
@@ -36,7 +36,6 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 	server.Router.Use(middlewares.CORSMiddleware())
 
 	server.initializeRoutes()
-
 }
 
 func (server *Server) Run(addr string) {

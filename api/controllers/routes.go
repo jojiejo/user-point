@@ -1,6 +1,19 @@
 package controllers
 
 func (s *Server) initializeRoutes() {
+	//Global Variable
+	s.Router.GET("/global-variables", s.GetGlobalVariables)
+	gv := s.Router.Group("/global-variable")
+	{
+		gv.GET("/:id/detail", s.GetGlobalVariableDetailByGlobalVariableID)
+	}
+	gvd := s.Router.Group("/global-variable-detail")
+	{
+		gvd.GET("/:id", s.GetGlobalVariableDetail)
+		gvd.POST("/", s.CreateGlobalVariableDetail)
+		gvd.PUT("/:id", s.UpdateGlobalVariableDetail)
+	}
+
 	//Province
 	s.Router.GET("/provinces", s.GetProvinces)
 	s.Router.GET("/province/:id", s.GetProvince)
@@ -12,28 +25,32 @@ func (s *Server) initializeRoutes() {
 
 	//Site
 	s.Router.GET("/sites", s.GetSites)
+	s.Router.GET("/site-types", s.GetSiteTypes)
 	s.Router.GET("/sites/latest", s.GetLatestSites)
+	s.Router.GET("/sites/active", s.GetActiveSites)
 	site := s.Router.Group("/site")
 	{
 		site.GET("/:id", s.GetSite)
 		site.GET("/:id/history", s.GetSiteHistory)
 		site.POST("/", s.CreateSite)
 		site.PUT("/:id", s.UpdateSite)
-		site.DELETE("/:id", s.DeactivateSite)
+		site.DELETE("/:id/now", s.DeactivateSiteNow)
+		site.DELETE("/:id/later", s.DeactivateSiteLater)
 		site.PATCH("/:id", s.ReactivateSite)
 		/*site.DELETE("/:id/later", s.TerminateSiteLater)
 		site.DELETE("/:id", s.TerminateSiteNow)*/
 
-		//Retailer Site Relation
-		site.GET("/:id/terminal-relations", s.GetSiteTerminalRelationBySiteID)
-		site.POST("/:id/terminal-relation", s.CreateSiteTerminalRelation)
+		//Site Terminal Relation
+		site.GET("/:id/terminal-relations", s.GetTerminalBySiteID)
+		/*site.POST("/:id/terminal-relation", s.CreateSiteTerminalRelation)
 		site.PUT("/:id/terminal-relation/:relation_id", s.UpdateSiteTerminalRelation)
-		site.DELETE("/:id/terminal-relation/:relation_id", s.UnlinkSiteTerminalRelation)
+		site.DELETE("/:id/terminal-relation/:relation_id", s.UnlinkSiteTerminalRelation)*/
 	}
 
 	//Retailer
 	s.Router.GET("/retailers", s.GetRetailers)
 	s.Router.GET("/retailers/latest", s.GetLatestRetailers)
+	s.Router.GET("/retailers/active", s.GetActiveRetailers)
 	s.Router.GET("/retailer-payment-terms", s.GetPaymentTerms)
 	s.Router.GET("/retailer-reimbursement-cycles", s.GetReimbursementCycles)
 	retailer := s.Router.Group("/retailer")
@@ -42,8 +59,8 @@ func (s *Server) initializeRoutes() {
 		retailer.GET("/:id/history", s.GetRetailerHistory)
 		retailer.POST("/", s.CreateRetailer)
 		retailer.PUT("/:id", s.UpdateRetailer)
-		retailer.POST(":id/deactivate", s.DeactivateRetailer)
-		retailer.DELETE("/:id", s.DeactivateRetailer)
+		retailer.DELETE("/:id/now", s.DeactivateRetailerNow)
+		retailer.DELETE("/:id/later", s.DeactivateRetailerLater)
 		retailer.PATCH("/:id", s.ReactivateRetailer)
 		/*retailer.DELETE("/:id/later", s.TerminateRetailerLater)
 		retailer.DELETE("/:id", s.TerminateRetailerNow)*/
@@ -64,7 +81,34 @@ func (s *Server) initializeRoutes() {
 		terminal.GET("/:id/history", s.GetTerminalHistory)
 		terminal.POST("/", s.CreateTerminal)
 		terminal.PUT("/:id", s.UpdateTerminal)
-		terminal.DELETE("/:id", s.DeactivateTerminal)
+		terminal.DELETE("/:id/now", s.DeactivateTerminalNow)
+		terminal.DELETE("/:id/later", s.DeactivateTerminalLater)
 		terminal.PATCH("/:id", s.ReactivateTerminal)
+	}
+
+	//Payer
+	s.Router.GET("/payers", s.GetPayers)
+	payer := s.Router.Group("/payer")
+	{
+		payer.GET("/:id", s.GetPayer)
+		payer.GET("/:id/branches", s.GetBranchByCCID)
+		payer.PATCH("/:id/configuration", s.UpdateConfiguration)
+		payer.PATCH("/:id/credit", s.UpdateCredit)
+		payer.PATCH("/:id/invoice-production", s.UpdateInvoiceProduction)
+	}
+
+	//Branch
+	/*s.Router.GET("/branches", s.GetBranches)
+	branch := s.Router.Group("/branch")
+	{
+		branch.GET("/:id", s.GetBranch)
+	}*/
+
+	//Card Group
+
+	//GSAP Master Data
+	gsap_master_data := s.Router.Group("/gsap-customer-master-data")
+	{
+		gsap_master_data.GET("/:id", s.GetCustomerMasterData)
 	}
 }

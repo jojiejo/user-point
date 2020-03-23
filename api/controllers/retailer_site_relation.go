@@ -126,7 +126,7 @@ func (server *Server) UpdateRetailerSiteRelation(c *gin.Context) {
 	relation.ID = originalRelation.ID
 
 	relation.Prepare()
-	errorMessages := relation.Validate()
+	errorMessages := relation.UpdateValidate()
 	if len(errorMessages) > 0 {
 		errList = errorMessages
 		c.JSON(http.StatusUnprocessableEntity, gin.H{

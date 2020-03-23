@@ -12,9 +12,9 @@ import (
 type RetailerSiteRelation struct {
 	ID                int                                   `gorm:"primary_key;auto_increment" json:"id"`
 	RetailerID        int                                   `gorm:"not null" json:"retailer_id"`
-	Retailer          RetailerSiteRelationDisplayedSite     `json:"retailer"`
+	Retailer          RetailerSiteRelationDisplayedRetailer `json:"retailer"`
 	SiteID            int                                   `gorm:"not null" json:"site_id"`
-	Site              RetailerSiteRelationDisplayedRetailer `json:"site"`
+	Site              RetailerSiteRelationDisplayedSite     `json:"site"`
 	BankAccountNumber string                                `json:"bank_account_number"`
 	StartedAt         time.Time                             `json:"started_at"`
 	EndedAt           *time.Time                            `json:"ended_at"`
@@ -53,24 +53,31 @@ func (retailerSiteRelation *RetailerSiteRelation) Validate() map[string]string {
 	var err error
 	var errorMessages = make(map[string]string)
 
-	if retailerSiteRelation.BankAccountNumber == "" {
-		err = errors.New("Bank account number field is required")
-		errorMessages["required_bank_account_number"] = err.Error()
-	}
-
-	if len(retailerSiteRelation.BankAccountNumber) > 4 {
-		err = errors.New("Bank account number field is required")
-		errorMessages["required_bank_account_number"] = err.Error()
+	if len(retailerSiteRelation.BankAccountNumber) > 0 && len(retailerSiteRelation.BankAccountNumber) != 4 {
+		err = errors.New("Bank account number field must contain 4 characters")
+		errorMessages["bank_account_number"] = err.Error()
 	}
 
 	if retailerSiteRelation.RetailerID < 1 {
 		err = errors.New("Retailer field is required")
-		errorMessages["required_retailer"] = err.Error()
+		errorMessages["retailer"] = err.Error()
 	}
 
 	if retailerSiteRelation.SiteID < 1 {
 		err = errors.New("Site field is required")
-		errorMessages["required_site"] = err.Error()
+		errorMessages["site"] = err.Error()
+	}
+
+	return errorMessages
+}
+
+func (retailerSiteRelation *RetailerSiteRelation) UpdateValidate() map[string]string {
+	var err error
+	var errorMessages = make(map[string]string)
+
+	if len(retailerSiteRelation.BankAccountNumber) > 0 && len(retailerSiteRelation.BankAccountNumber) != 4 {
+		err = errors.New("Bank account number field must contain 4 characters")
+		errorMessages["bank_account_number"] = err.Error()
 	}
 
 	return errorMessages
@@ -86,7 +93,7 @@ func (retailerSiteRelation *RetailerSiteRelation) FindAllRetailerSiteRelationByR
 
 	if len(retailerSiteRelations) > 0 {
 		for i, _ := range retailerSiteRelations {
-			siteErr := db.Debug().Model(&Site{}).Unscoped().Select("id, ship_to_number, ship_to_name, address_1, address_2, address_3, city_id, zip_code").Where("original_id = ?", retailerSiteRelations[i].SiteID).Order("id desc").Take(&retailerSiteRelations[i].Site).Error
+			siteErr := db.Debug().Model(&RetailerSiteRelationDisplayedSite{}).Unscoped().Where("original_id = ?", retailerSiteRelations[i].SiteID).Order("id desc").Take(&retailerSiteRelations[i].Site).Error
 			if siteErr != nil {
 				return &[]RetailerSiteRelation{}, err
 			}
@@ -98,7 +105,7 @@ func (retailerSiteRelation *RetailerSiteRelation) FindAllRetailerSiteRelationByR
 				}
 			}
 
-			retailerErr := db.Debug().Model(&Retailer{}).Unscoped().Select("id, sold_to_number, sold_to_name, address_1, address_2, address_3, city_id, zip_code").Where("original_id = ?", retailerSiteRelations[i].RetailerID).Order("id desc").Take(&retailerSiteRelations[i].Retailer).Error
+			retailerErr := db.Debug().Model(&RetailerSiteRelationDisplayedRetailer{}).Unscoped().Where("original_id = ?", retailerSiteRelations[i].RetailerID).Order("id desc").Take(&retailerSiteRelations[i].Retailer).Error
 			if retailerErr != nil {
 				return &[]RetailerSiteRelation{}, err
 			}
@@ -145,8 +152,8 @@ func (retailerSiteRelation *RetailerSiteRelation) UpdateRetailerSiteRelation(db 
 	dateTimeNow := time.Now()
 	err = db.Debug().Model(&RetailerSiteRelation{}).Where("id = ?", retailerSiteRelation.ID).Updates(
 		RetailerSiteRelation{
+			StartedAt:         retailerSiteRelation.StartedAt,
 			BankAccountNumber: retailerSiteRelation.BankAccountNumber,
-			EndedAt:           retailerSiteRelation.EndedAt,
 			UpdatedAt:         &dateTimeNow,
 		}).Error
 

@@ -12,7 +12,7 @@ import (
 type Retailer struct {
 	ID                    int    `gorm:"primary_key;auto_increment" json:"id"`
 	OriginalID            int    `json:"original_id"`
-	SoldToNumber          string `gorm:"not null;size:10" json:"sold_to_number"`
+	SoldToNumber          string `gorm:"unique;not null;size:10" json:"sold_to_number"`
 	SoldToName            string `gorm:"not null; size:60" json:"sold_to_name"`
 	Address_1             string `gorm:"not null;size:30" json:"address_1"`
 	Address_2             string `gorm:"not null;size:30" json:"address_2"`
@@ -50,57 +50,47 @@ func (retailer *Retailer) Validate() map[string]string {
 
 	if retailer.SoldToNumber == "" {
 		err = errors.New("Sold to Number field is required")
-		errorMessages["required_sold_to_number"] = err.Error()
+		errorMessages["sold_to_number"] = err.Error()
+	}
+
+	if len(retailer.SoldToNumber) != 10 {
+		err = errors.New("Sold to Number field must contain 10 characters")
+		errorMessages["sold_to_number"] = err.Error()
 	}
 
 	if retailer.SoldToName == "" {
 		err = errors.New("Sold to Name field is required")
-		errorMessages["required_sold_to_name"] = err.Error()
+		errorMessages["sold_to_name"] = err.Error()
 	}
 
 	if retailer.Address_1 == "" {
 		err = errors.New("Address 1 field is required")
-		errorMessages["required_address_1"] = err.Error()
-	}
-
-	if retailer.Address_2 == "" {
-		err = errors.New("Address 2 field is required")
-		errorMessages["required_address_2"] = err.Error()
-	}
-
-	if retailer.Address_3 == "" {
-		err = errors.New("Address 3 field is required")
-		errorMessages["required_address_3"] = err.Error()
+		errorMessages["address_1"] = err.Error()
 	}
 
 	if retailer.CityID < 1 {
 		err = errors.New("City field is required")
-		errorMessages["required_city"] = err.Error()
+		errorMessages["city"] = err.Error()
 	}
 
 	if retailer.RetailerPaymentTermID < 1 {
 		err = errors.New("Retailer payment term field is required")
-		errorMessages["required_retailer_payment_term"] = err.Error()
+		errorMessages["retailer_payment_term"] = err.Error()
 	}
 
 	if retailer.RetailerReimbursementCycleID < 1 {
 		err = errors.New("Retailer reimbursement cycle field is required")
-		errorMessages["required_retailer_reimbursement_cycle"] = err.Error()
+		errorMessages["retailer_reimbursement_cycle"] = err.Error()
 	}
 
 	if retailer.ZipCode == "" {
 		err = errors.New("ZIP Code field is required")
-		errorMessages["required_zip_code"] = err.Error()
+		errorMessages["zip_code"] = err.Error()
 	}
-
-	/*if retailer.Phone == "" {
-		err = errors.New("Phone field is required")
-		errorMessages["required_phone"] = err.Error()
-	}*/
 
 	if retailer.Email == "" {
 		err = errors.New("Email field is required")
-		errorMessages["required_email"] = err.Error()
+		errorMessages["email"] = err.Error()
 	}
 
 	return errorMessages
@@ -109,7 +99,7 @@ func (retailer *Retailer) Validate() map[string]string {
 func (retailer *Retailer) FindAllRetailers(db *gorm.DB) (*[]Retailer, error) {
 	var err error
 	retailers := []Retailer{}
-	err = db.Debug().Model(&Retailer{}).Unscoped().Order("created_at desc").Find(&retailers).Error
+	err = db.Debug().Model(&Retailer{}).Unscoped().Order("sold_to_number, created_at desc").Find(&retailers).Error
 	if err != nil {
 		return &[]Retailer{}, err
 	}
@@ -140,20 +130,27 @@ func (retailer *Retailer) FindAllLatestRetailers(db *gorm.DB) (*[]Retailer, erro
 			if err != nil {
 				return &[]Retailer{}, err
 			}
+		}
+	}
 
-			/*if retailers[i].RetailerPaymentTermID != 0 {
-				err := db.Debug().Model(&RetailerPaymentTerm{}).Unscoped().Where("id = ?", retailers[i].RetailerPaymentTermID).Order("id desc").Take(&retailers[i].RetailerPaymentTerm).Error
-				if err != nil {
-					return &[]Retailer{}, err
-				}
+	return &retailers, nil
+}
+
+func (retailer *Retailer) FindAllActiveRetailers(db *gorm.DB) (*[]Retailer, error) {
+	var err error
+	retailers := []Retailer{}
+	dateTimeNow := time.Now()
+	err = db.Debug().Model(&Retailer{}).Unscoped().Where("deleted_at IS NULL OR deleted_at > ?", dateTimeNow).Order("sold_to_number, created_at desc").Find(&retailers).Error
+	if err != nil {
+		return &[]Retailer{}, err
+	}
+
+	if len(retailers) > 0 {
+		for i, _ := range retailers {
+			err := db.Debug().Model(&City{}).Unscoped().Where("id = ?", retailers[i].CityID).Order("id desc").Take(&retailers[i].City).Error
+			if err != nil {
+				return &[]Retailer{}, err
 			}
-
-			if retailers[i].RetailerReimbursementCycleID != 0 {
-				err := db.Debug().Model(&RetailerReimbursementCycle{}).Unscoped().Where("id = ?", retailers[i].RetailerReimbursementCycleID).Order("id desc").Take(&retailers[i].RetailerReimbursementCycle).Error
-				if err != nil {
-					return &[]Retailer{}, err
-				}
-			}*/
 		}
 	}
 
@@ -244,12 +241,26 @@ func (retailer *Retailer) UpdateRetailer(db *gorm.DB) (*Retailer, error) {
 	return retailer, nil
 }
 
-func (retailer *Retailer) DeactivateRetailer(db *gorm.DB) (int64, error) {
+func (retailer *Retailer) DeactivateRetailerNow(db *gorm.DB) (int64, error) {
 	db = db.Debug().Model(&Retailer{}).Where("id = ?", retailer.ID).Delete(&Retailer{})
 	if db.Error != nil {
 		return 0, db.Error
 	}
 	return db.RowsAffected, nil
+}
+
+func (retailer *Retailer) DeactivateRetailerLater(db *gorm.DB) (int64, error) {
+	var err error
+	err = db.Debug().Model(&Retailer{}).Where("id = ?", retailer.ID).Updates(
+		Retailer{
+			DeletedAt: retailer.DeletedAt,
+		}).Error
+
+	if err != nil {
+		return 0, err
+	}
+
+	return 1, nil
 }
 
 func (retailer *Retailer) ReactivateRetailer(db *gorm.DB) (*Retailer, error) {

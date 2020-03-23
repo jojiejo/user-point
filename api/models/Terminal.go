@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"html"
 	"strings"
 	"time"
@@ -16,6 +15,10 @@ type Terminal struct {
 	TerminalSN    string     `gorm:"not null;" json:"terminal_sn"`
 	TerminalID    string     `gorm:"not null;" json:"terminal_id"`
 	MerchantID    string     `gorm:"not null;" json:"merchant_id"`
+	SiteID        int        `json:"site_id"`
+	Site          Site       `json:"site"`
+	StartedAt     time.Time  `json:"started_at"`
+	EndedAt       *time.Time `json:"ended_at"`
 	CreatedAt     time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt     *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt     *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
@@ -33,20 +36,39 @@ func (terminal *Terminal) Validate() map[string]string {
 	var err error
 	var errorMessages = make(map[string]string)
 
-	fmt.Println("Terminal SN : ", terminal.TerminalSN)
+	if len(terminal.TerminalSN) != 9 {
+		err = errors.New("Terminal SN must contain 9 characters")
+		errorMessages["terminal_sn"] = err.Error()
+	}
+
 	if terminal.TerminalSN == "" {
 		err = errors.New("Terminal SN field is required")
-		errorMessages["required_terminal_sn"] = err.Error()
+		errorMessages["terminal_sn"] = err.Error()
+	}
+
+	if len(terminal.TerminalID) != 8 {
+		err = errors.New("Terminal ID must contain 8 characters")
+		errorMessages["terminal_id"] = err.Error()
 	}
 
 	if terminal.TerminalID == "" {
 		err = errors.New("Terminal ID field is required")
-		errorMessages["required_terminal_id"] = err.Error()
+		errorMessages["terminal_id"] = err.Error()
+	}
+
+	if len(terminal.MerchantID) != 15 {
+		err = errors.New("Merchant ID must contain 15 characters")
+		errorMessages["merchant_id"] = err.Error()
 	}
 
 	if terminal.MerchantID == "" {
 		err = errors.New("Merchant ID field is required")
-		errorMessages["required_merchant_id"] = err.Error()
+		errorMessages["merchant_id"] = err.Error()
+	}
+
+	if terminal.SiteID < 1 {
+		err = errors.New("Site ID field is required")
+		errorMessages["site_id"] = err.Error()
 	}
 
 	return errorMessages
@@ -55,9 +77,28 @@ func (terminal *Terminal) Validate() map[string]string {
 func (terminal *Terminal) FindAllTerminals(db *gorm.DB) (*[]Terminal, error) {
 	var err error
 	terminals := []Terminal{}
-	err = db.Debug().Model(&Terminal{}).Limit(100).Order("created_at desc").Find(&terminals).Error
+	err = db.Debug().Model(&Terminal{}).Unscoped().Order("terminal_sn, terminal_id, merchant_id, created_at desc").Find(&terminals).Error
 	if err != nil {
 		return &[]Terminal{}, err
+	}
+
+	if len(terminals) > 0 {
+		for i, _ := range terminals {
+			siteErr := db.Debug().Model(&City{}).Unscoped().Where("id = ?", terminals[i].SiteID).Order("id desc").Take(&terminals[i].Site).Error
+			if siteErr != nil {
+				return &[]Terminal{}, err
+			}
+
+			cityErr := db.Debug().Model(&City{}).Unscoped().Where("id = ?", terminals[i].Site.CityID).Order("id desc").Take(&terminals[i].Site.City).Error
+			if cityErr != nil {
+				return &[]Terminal{}, err
+			}
+
+			siteTypeErr := db.Debug().Model(&SiteType{}).Unscoped().Where("id = ?", terminals[i].Site.SiteTypeID).Order("id desc").Take(&terminals[i].Site.SiteType).Error
+			if siteTypeErr != nil {
+				return &[]Terminal{}, err
+			}
+		}
 	}
 
 	return &terminals, nil
@@ -71,6 +112,25 @@ func (terminal *Terminal) FindAllLatestTerminals(db *gorm.DB) (*[]Terminal, erro
 		return &[]Terminal{}, err
 	}
 
+	if len(terminals) > 0 {
+		for i, _ := range terminals {
+			siteErr := db.Debug().Model(&City{}).Unscoped().Where("id = ?", terminals[i].SiteID).Order("id desc").Take(&terminals[i].Site).Error
+			if siteErr != nil {
+				return &[]Terminal{}, err
+			}
+
+			cityErr := db.Debug().Model(&City{}).Unscoped().Where("id = ?", terminals[i].Site.CityID).Order("id desc").Take(&terminals[i].Site.City).Error
+			if cityErr != nil {
+				return &[]Terminal{}, err
+			}
+
+			siteTypeErr := db.Debug().Model(&SiteType{}).Unscoped().Where("id = ?", terminals[i].Site.SiteTypeID).Order("id desc").Take(&terminals[i].Site.SiteType).Error
+			if siteTypeErr != nil {
+				return &[]Terminal{}, err
+			}
+		}
+	}
+
 	return &terminals, nil
 }
 
@@ -81,7 +141,34 @@ func (terminal *Terminal) FindTerminalByID(db *gorm.DB, terminalID uint64) (*Ter
 		return &Terminal{}, err
 	}
 
+	siteErr := db.Debug().Model(&City{}).Unscoped().Where("id = ?", terminal.SiteID).Order("id desc").Take(&terminal.Site).Error
+	if siteErr != nil {
+		return &Terminal{}, err
+	}
+
+	cityErr := db.Debug().Model(&City{}).Unscoped().Where("id = ?", terminal.Site.CityID).Order("id desc").Take(&terminal.Site.City).Error
+	if cityErr != nil {
+		return &Terminal{}, err
+	}
+
+	siteTypeErr := db.Debug().Model(&SiteType{}).Unscoped().Where("id = ?", terminal.Site.SiteTypeID).Order("id desc").Take(&terminal.Site.SiteType).Error
+	if siteTypeErr != nil {
+		return &Terminal{}, err
+	}
+
 	return terminal, nil
+}
+
+func (terminal *Terminal) FindAllTerminalBySiteID(db *gorm.DB, siteID uint64) (*[]Terminal, error) {
+	var err error
+
+	terminals := []Terminal{}
+	err = db.Debug().Model(&Terminal{}).Unscoped().Where("site_id = ?", siteID).Order("created_at desc").Find(&terminals).Error
+	if err != nil {
+		return &[]Terminal{}, err
+	}
+
+	return &terminals, nil
 }
 
 func (terminal *Terminal) FindTerminalHistoryByID(db *gorm.DB, originalRetailerID uint64) (*[]Terminal, error) {
@@ -90,6 +177,25 @@ func (terminal *Terminal) FindTerminalHistoryByID(db *gorm.DB, originalRetailerI
 	err = db.Debug().Model(&Terminal{}).Unscoped().Where("original_id = ?", originalRetailerID).Order("created_at desc").Find(&terminals).Error
 	if err != nil {
 		return &[]Terminal{}, err
+	}
+
+	if len(terminals) > 0 {
+		for i, _ := range terminals {
+			siteErr := db.Debug().Model(&City{}).Unscoped().Where("id = ?", terminals[i].SiteID).Order("id desc").Take(&terminals[i].Site).Error
+			if siteErr != nil {
+				return &[]Terminal{}, err
+			}
+
+			cityErr := db.Debug().Model(&City{}).Unscoped().Where("id = ?", terminals[i].Site.CityID).Order("id desc").Take(&terminals[i].Site.City).Error
+			if cityErr != nil {
+				return &[]Terminal{}, err
+			}
+
+			siteTypeErr := db.Debug().Model(&SiteType{}).Unscoped().Where("id = ?", terminals[i].Site.SiteTypeID).Order("id desc").Take(&terminals[i].Site.SiteType).Error
+			if siteTypeErr != nil {
+				return &[]Terminal{}, err
+			}
+		}
 	}
 
 	return &terminals, nil
@@ -136,7 +242,55 @@ func (terminal *Terminal) UpdateTerminal(db *gorm.DB) (*Terminal, error) {
 	return terminal, nil
 }
 
-func (terminal *Terminal) DeactivateTerminal(db *gorm.DB) (int64, error) {
+func (terminal *Terminal) DeactivateTerminalNow(db *gorm.DB) (int64, error) {
+	db = db.Debug().Model(&Site{}).Where("id = ?", terminal.ID).Delete(&Terminal{})
+	if db.Error != nil {
+		return 0, db.Error
+	}
+	return db.RowsAffected, nil
+}
+
+func (terminal *Terminal) DeactivateTerminalLater(db *gorm.DB) (int64, error) {
+	var err error
+	err = db.Debug().Model(&Terminal{}).Where("id = ?", terminal.ID).Updates(
+		Terminal{
+			DeletedAt: terminal.DeletedAt,
+		}).Error
+
+	if err != nil {
+		return 0, err
+	}
+
+	return 1, nil
+}
+
+func (terminal *Terminal) ReactivateTerminal(db *gorm.DB) (*Terminal, error) {
+	var err error
+	tx := db.Begin()
+	dateTimeNow := time.Now()
+	err = db.Debug().Model(&Terminal{}).Unscoped().Where("id = ?", terminal.ID).Updates(
+		Terminal{
+			ReactivatedAt: &dateTimeNow,
+		}).Error
+	if err != nil {
+		tx.Rollback()
+		return &Terminal{}, err
+	}
+
+	terminal.ID = 0
+	terminal.DeletedAt = nil
+	terminal.ReactivatedAt = nil
+	err = db.Debug().Model(&Terminal{}).Create(&terminal).Error
+	if err != nil {
+		tx.Rollback()
+		return &Terminal{}, err
+	}
+
+	tx.Commit()
+	return terminal, nil
+}
+
+/*func (terminal *Terminal) DeactivateTerminal(db *gorm.DB) (int64, error) {
 	db = db.Debug().Model(&Site{}).Where("id = ?", terminal.ID).Delete(&Terminal{})
 	if db.Error != nil {
 		return 0, db.Error
@@ -168,7 +322,7 @@ func (terminal *Terminal) ReactivateTerminal(db *gorm.DB) (*Terminal, error) {
 
 	tx.Commit()
 	return terminal, nil
-}
+}*/
 
 /*func (terminal *Terminal) TerminateTerminalLater(db *gorm.DB) (int64, error) {
 	var err error

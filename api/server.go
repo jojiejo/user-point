@@ -20,6 +20,16 @@ func init() {
 
 func Run() {
 	var err error
+
+	//Init Log File
+	logFile, err := os.OpenFile("shell-lombok.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("Error opening log file: %v", err)
+	}
+	defer logFile.Close()
+	log.SetOutput(logFile)
+	//to disable logging => log.SetOutput(ioutil.Discard)
+
 	err = godotenv.Load()
 	if err != nil {
 		log.Fatalf("Error populating ENV, %v", err)

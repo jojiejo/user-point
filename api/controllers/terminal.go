@@ -118,6 +118,24 @@ func (server *Server) CreateTerminal(c *gin.Context) {
 		return
 	}
 
+	var count int
+	err = server.DB.Debug().Model(models.Terminal{}).Where("terminal_sn = ? AND terminal_id = ? AND merchant_id = ?", terminal.TerminalSN, terminal.TerminalID, terminal.MerchantID).Count(&count).Error
+	if err != nil {
+		errList["unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	if count > 0 {
+		errList["combination"] = "The combination of entered terminal serial number, terminal id, and merchant id already exist"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
 	terminal.Prepare()
 	errorMessages := terminal.Validate()
 	if len(errorMessages) > 0 {
@@ -205,7 +223,7 @@ func (server *Server) UpdateTerminal(c *gin.Context) {
 	})
 }
 
-func (server *Server) DeactivateTerminal(c *gin.Context) {
+func (server *Server) DeactivateTerminalNow(c *gin.Context) {
 	errList = map[string]string{}
 	terminalID := c.Param("id")
 
@@ -228,11 +246,69 @@ func (server *Server) DeactivateTerminal(c *gin.Context) {
 		return
 	}
 
-	_, err = originalTerminal.DeactivateTerminal(server.DB)
+	_, err = originalTerminal.DeactivateTerminalNow(server.DB)
 	if err != nil {
 		errList["other_error"] = "Please try again later"
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": errList,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"response": "Selected terminal has been deactivated successfully.",
+	})
+}
+
+func (server *Server) DeactivateTerminalLater(c *gin.Context) {
+	errList = map[string]string{}
+	terminalID := c.Param("id")
+
+	terminalid, err := strconv.ParseUint(terminalID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalTerminal := models.Terminal{}
+	err = server.DB.Debug().Model(models.Terminal{}).Where("id = ?", terminalid).Order("id desc").Take(&originalTerminal).Error
+	if err != nil {
+		errList["no_post"] = "No terminal found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		errList["invalid_body"] = "Unable to get request"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	terminal := models.Terminal{}
+	err = json.Unmarshal(body, &terminal)
+	if err != nil {
+		errList["unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	terminal.ID = originalTerminal.ID
+	terminal.Prepare()
+
+	_, err = terminal.DeactivateTerminalLater(server.DB)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err,
 		})
 		return
 	}
@@ -274,7 +350,7 @@ func (server *Server) ReactivateTerminal(c *gin.Context) {
 	}
 
 	if originalTerminal.ReactivatedAt != nil {
-		errList["status_unprocessed"] = "The retailer has been reactivated in prior"
+		errList["status_unprocessed"] = "The terminal has been reactivated in prior"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,
 		})

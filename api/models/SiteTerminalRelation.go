@@ -33,9 +33,9 @@ type SiteTerminalRelationDisplayedSite struct {
 
 type SiteTerminalRelationDisplayedTerminal struct {
 	ID         int    `gorm:"primary_key;auto_increment" json:"id"`
-	TerminalSN string `gorm:"not null;size:10" json:"sold_to_number"`
-	TerminalID string `gorm:"not null; size:60" json:"sold_to_name"`
-	MerchantID string `gorm:"not null;size:30" json:"address_1"`
+	TerminalSN string `gorm:"not null;size:10" json:"terminal_sn"`
+	TerminalID string `gorm:"not null; size:60" json:"terminal_id"`
+	MerchantID string `gorm:"not null;size:30" json:"merchant_id"`
 }
 
 func (siteTerminalRelation *SiteTerminalRelation) Validate() map[string]string {
@@ -65,7 +65,7 @@ func (siteTerminalRelation *SiteTerminalRelation) FindAllSiteTerminalRelationByS
 
 	if len(siteTerminalRelations) > 0 {
 		for i, _ := range siteTerminalRelations {
-			siteErr := db.Debug().Model(&Site{}).Unscoped().Select("id, ship_to_number, ship_to_name, address_1, address_2, address_3, city_id, zip_code").Where("original_id = ?", siteTerminalRelations[i].SiteID).Order("id desc").Take(&siteTerminalRelations[i].Site).Error
+			siteErr := db.Debug().Model(&SiteTerminalRelationDisplayedSite{}).Unscoped().Where("original_id = ?", siteTerminalRelations[i].SiteID).Order("id desc").Take(&siteTerminalRelations[i].Site).Error
 			if siteErr != nil {
 				return &[]SiteTerminalRelation{}, err
 			}
@@ -77,7 +77,7 @@ func (siteTerminalRelation *SiteTerminalRelation) FindAllSiteTerminalRelationByS
 				}
 			}
 
-			terminalErr := db.Debug().Model(&Terminal{}).Unscoped().Select("id, terminal_sn, terminal_id, merchant_id").Where("original_id = ?", siteTerminalRelations[i].TerminalID).Order("id desc").Take(&siteTerminalRelations[i].Terminal).Error
+			terminalErr := db.Debug().Model(&SiteTerminalRelationDisplayedTerminal{}).Unscoped().Where("original_id = ?", siteTerminalRelations[i].TerminalID).Order("id desc").Take(&siteTerminalRelations[i].Terminal).Error
 			if terminalErr != nil {
 				return &[]SiteTerminalRelation{}, err
 			}

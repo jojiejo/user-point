@@ -1,0 +1,78 @@
+2020/03/20 15:23:29 The service has been connected to the mssql database
+2020/03/20 15:23:42 The service has been connected to the mssql database
+2020/03/20 15:25:32 The service has been connected to the mssql database
+2020/03/20 15:25:35 Beginning site query
+2020/03/20 15:28:48 The service has been connected to the mssql database
+2020/03/20 15:29:10 Beginning site query
+2020/03/20 15:29:10 [{"id":6,"original_id":6,"ship_to_number":"10909231","ship_to_name":"SHELL JATIWARINGIN-4 JAKARTA","site_type_id":1,"site_type":{"id":1,"name":"Company Owned, Company Operated","abbreviation":"COCO"},"address_1":"JL. SETIA 1C","address_2":"","address_3":"","city_id":2,"city":{"id":2,"name":"Jakarta Timur","phone_prefix":"021","province_id":1},"zip_code":"17411","phone":"0218473618","created_at":"2020-03-19T14:08:19.637Z","updated_at":"2020-03-19T14:08:19.747Z","deleted_at":null,"reactivated_at":null},{"id":4,"original_id":4,"ship_to_number":"10909231","ship_to_name":"SHELL JATIWARINGIN-4 JAKARTA","site_type_id":1,"site_type":{"id":1,"name":"Company Owned, Company Operated","abbreviation":"COCO"},"address_1":"JL. SETIA 1C","address_2":"NO. 9 RT/RW 003/04","address_3":"JATIWARING, PONDOK GEDE","city_id":2,"city":{"id":2,"name":"Jakarta Timur","phone_prefix":"021","province_id":1},"zip_code":"17411","phone":"0218473618","created_at":"2020-03-19T14:06:43.157Z","updated_at":"2020-03-19T14:06:43.38Z","deleted_at":null,"reactivated_at":null},{"id":11,"original_id":11,"ship_to_number":"1092309230","ship_to_name":"SHELL GATSU","site_type_id":3,"site_type":{"id":3,"name":"Dealer Owned, Dealer Operated","abbreviation":"DODO"},"address_1":"Jalan Gatot Subroto","address_2":"","address_3":"","city_id":11,"city":{"id":11,"name":"Bekasi","phone_prefix":"021","province_id":2},"zip_code":"17411","phone":"0821240930293","created_at":"2020-03-19T14:26:43.487Z","updated_at":"2020-03-19T14:26:43.51Z","deleted_at":null,"reactivated_at":null},{"id":9,"original_id":9,"ship_to_number":"3242424324","ship_to_name":"Shell Gatsu","site_type_id":3,"site_type":{"id":3,"name":"Dealer Owned, Dealer Operated","abbreviation":"DODO"},"address_1":"Gatsu 20","address_2":"","address_3":"","city_id":10,"city":{"id":10,"name":"Cirebon","phone_prefix":"0231","province_id":2},"zip_code":"42122","phone":"082120720496","created_at":"2020-03-19T14:21:37.077Z","updated_at":"2020-03-19T14:21:37.137Z","deleted_at":null,"reactivated_at":null}]
+2020/03/20 15:40:18 The service has been connected to the mssql database
+2020/03/20 15:42:18 The service has been connected to the mssql database
+2020/03/21 15:10:47 Cannot connect to mssql database
+2020/03/21 15:10:47 This is the error:Unable to open tcp connection with host '192.168.202.110:1433': dial tcp 192.168.202.110:1433: i/o timeout
+2020/03/21 15:12:29 Cannot connect to mssql database
+2020/03/21 15:12:29 This is the error:Unable to open tcp connection with host '192.168.202.110:1433': dial tcp 192.168.202.110:1433: i/o timeout
+2020/03/21 15:13:39 The service has been connected to the mssql database
+2020/03/21 15:13:42 Begin => Get Sites
+2020/03/21 15:13:42 Successfully Get Sites
+2020/03/21 15:13:42 End => Get Sites
+2020/03/21 15:29:02 The service has been connected to the mssql database
+2020/03/21 15:31:50 The service has been connected to the mssql database
+2020/03/21 15:32:37 The service has been connected to the mssql database
+2020/03/21 15:36:24 The service has been connected to the mssql database
+2020/03/21 15:42:07 The service has been connected to the mssql database
+2020/03/21 15:46:27 The service has been connected to the mssql database
+2020/03/21 15:59:27 The service has been connected to the mssql database
+2020/03/21 16:31:29 The service has been connected to the mssql database
+2020/03/21 16:42:37 The service has been connected to the mssql database
+2020/03/21 16:48:26 The service has been connected to the mssql database
+2020/03/21 21:59:12 The service has been connected to the mssql database
+2020/03/21 21:59:14 Begin => Get Latest Sites
+2020/03/21 21:59:14 Successfully Get Latest Sites
+2020/03/21 21:59:14 End => Get Active Sites
+2020/03/21 22:02:20 Begin => Get Latest Sites
+2020/03/21 22:02:21 Successfully Get Latest Sites
+2020/03/21 22:02:21 End => Get Active Sites
+2020/03/21 22:04:45 The service has been connected to the mssql database
+2020/03/22 16:01:36 The service has been connected to the mssql database
+2020/03/22 16:12:18 The service has been connected to the mssql database
+2020/03/22 16:32:09 The service has been connected to the mssql database
+2020/03/22 16:56:10 The service has been connected to the mssql database
+2020/03/22 17:33:23 The service has been connected to the mssql database
+2020/03/22 17:36:54 The service has been connected to the mssql database
+2020/03/22 17:37:03 Begin => Get Global Variables
+2020/03/22 17:37:03 Successfully Get Global Variables
+2020/03/22 17:37:03 End => Get Global Variables
+2020/03/22 17:39:03 The service has been connected to the mssql database
+2020/03/22 17:39:04 Begin => Get Global Variables
+2020/03/22 17:39:04 Successfully Get Global Variables
+2020/03/22 17:39:04 End => Get Global Variables
+2020/03/22 17:39:40 The service has been connected to the mssql database
+2020/03/22 17:39:42 Begin => Get Global Variables
+2020/03/22 17:39:42 No global variable found
+2020/03/22 17:40:15 The service has been connected to the mssql database
+2020/03/22 17:40:16 Begin => Get Global Variables
+2020/03/22 17:40:16 Successfully Get Global Variables
+2020/03/22 17:40:16 End => Get Global Variables
+2020/03/22 17:40:40 The service has been connected to the mssql database
+2020/03/22 17:40:41 Begin => Get Global Variables
+2020/03/22 17:40:41 Successfully Get Global Variables
+2020/03/22 17:40:41 End => Get Global Variables
+2020/03/22 17:41:10 The service has been connected to the mssql database
+2020/03/22 17:41:12 Begin => Get Global Variables
+2020/03/22 17:41:12 Successfully Get Global Variables
+2020/03/22 17:41:12 End => Get Global Variables
+2020/03/22 17:41:26 The service has been connected to the mssql database
+2020/03/22 17:41:26 Begin => Get Global Variables
+2020/03/22 17:41:26 Successfully Get Global Variables
+2020/03/22 17:41:26 End => Get Global Variables
+2020/03/22 17:53:18 The service has been connected to the mssql database
+2020/03/22 17:54:16 The service has been connected to the mssql database
+2020/03/22 18:18:43 The service has been connected to the mssql database
+2020/03/22 18:20:50 The service has been connected to the mssql database
+2020/03/22 18:22:33 The service has been connected to the mssql database
+2020/03/22 18:29:12 The service has been connected to the mssql database
+2020/03/22 18:31:34 The service has been connected to the mssql database
+2020/03/22 18:38:53 The service has been connected to the mssql database
+2020/03/22 18:39:15 The service has been connected to the mssql database
+2020/03/22 18:40:45 The service has been connected to the mssql database
+2020/03/22 18:41:55 The service has been connected to the mssql database
