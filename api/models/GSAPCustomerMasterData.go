@@ -50,6 +50,16 @@ type GSAPCustomerMasterData struct {
 	BillToEmailAddress   string            `json:"bill_to_email_address"`
 }
 
+type ShortenedGSAPCustomerMasterData struct {
+	MCMSID             int    `json:"mcms_id"`
+	PayerNumber        string `json:"payer_number"`
+	AgentAccountNumber string `json:"agent_account_number"`
+	ContactName_1      string `json:"contact_name_1"`
+	ContactName_2      string `json:"contact_name_2"`
+	ContactName_3      string `json:"contact_name_3"`
+	ContactName_4      string `json:"contact_name_4"`
+}
+
 type GSAPBusinessType struct {
 	ID   int    `gorm:"primary_key;auto_increment" json:"id"`
 	Name string `gorm:"not null;size:50" json:"name"`
@@ -83,6 +93,10 @@ func (gsapCustomerMasterDatum *GSAPCustomerMasterData) FindDataByMCMSID(db *gorm
 }
 
 func (GSAPCustomerMasterData) TableName() string {
+	return "gsap_customer_master_data"
+}
+
+func (ShortenedGSAPCustomerMasterData) TableName() string {
 	return "gsap_customer_master_data"
 }
 

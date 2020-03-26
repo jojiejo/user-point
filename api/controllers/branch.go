@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -19,7 +20,7 @@ func (server *Server) GetBranchByCCID(c *gin.Context) {
 		return
 	}
 
-	branch := models.Branch{}
+	branch := models.ShortenedBranch{}
 	branchReceived, err := branch.FindBranchByCCID(server.DB, convertedCCID)
 	if err != nil {
 		errList["no_branch"] = "No branch found"
@@ -29,6 +30,36 @@ func (server *Server) GetBranchByCCID(c *gin.Context) {
 		return
 	}
 
+	c.JSON(http.StatusOK, gin.H{
+		"response": branchReceived,
+	})
+}
+
+func (server *Server) GetBranch(c *gin.Context) {
+	log.Printf("Begin => Get Specific Branch")
+	branchID := c.Param("id")
+	convertedBranchID, err := strconv.ParseUint(branchID, 10, 64)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	branch := models.Branch{}
+	branchReceived, err := branch.FindBranchByID(server.DB, convertedBranchID)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["no_payer"] = "No payer found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	log.Printf("Successfully Get Specific Branch")
 	c.JSON(http.StatusOK, gin.H{
 		"response": branchReceived,
 	})

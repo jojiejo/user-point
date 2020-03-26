@@ -74,6 +74,7 @@ func (s *Server) initializeRoutes() {
 
 	//Terminal
 	s.Router.GET("/terminals", s.GetTerminals)
+	s.Router.GET("/retailer/:id/site/:site_id/terminal-overview", s.GetTerminalOverview)
 	s.Router.GET("/terminals/latest", s.GetLatestTerminals)
 	terminal := s.Router.Group("/terminal")
 	{
@@ -98,13 +99,22 @@ func (s *Server) initializeRoutes() {
 	}
 
 	//Branch
-	/*s.Router.GET("/branches", s.GetBranches)
 	branch := s.Router.Group("/branch")
 	{
 		branch.GET("/:id", s.GetBranch)
-	}*/
+		branch.GET("/:id/card-groups", s.GetCardGroupsByBranchID)
+	}
 
 	//Card Group
+	cardGroup := s.Router.Group("/card-group")
+	{
+		cardGroup.GET("/:id", s.GetCardGroupByID)
+		cardGroup.POST("/", s.CreateCardGroup)
+		cardGroup.PUT("/:id", s.UpdateCardGroup)
+		cardGroup.DELETE("/:id", s.DeactivateCardGroup)
+	}
+
+	//Member Card
 
 	//GSAP Master Data
 	gsap_master_data := s.Router.Group("/gsap-customer-master-data")

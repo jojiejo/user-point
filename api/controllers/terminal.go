@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -11,20 +11,64 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (server *Server) GetTerminals(c *gin.Context) {
-	terminal := models.Terminal{}
-
-	terminals, err := terminal.FindAllTerminals(server.DB)
+// Terminal Overview
+func (server *Server) GetTerminalOverview(c *gin.Context) {
+	log.Printf("Begin => Get Terminal Overview")
+	retailerID := c.Param("id")
+	siteID := c.Param("site_id")
+	convertedRetailerID, err := strconv.ParseUint(retailerID, 10, 64)
+	convertedSiteID, err := strconv.ParseUint(siteID, 10, 64)
+	log.Printf("retailer %d site %d", convertedRetailerID, convertedSiteID)
 	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	terminal := models.Terminal{}
+	terminalReceived, err := terminal.FindTerminalOverview(server.DB, convertedRetailerID, convertedSiteID)
+	if err != nil {
+		log.Printf(err.Error())
 		errList["no_terminal"] = "No terminal found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
 		return
 	}
+
+	stringifiedTerminalReceived, _ := json.Marshal(terminalReceived)
+	log.Printf("Get Terminal Overview : ", string(stringifiedTerminalReceived))
+	c.JSON(http.StatusOK, gin.H{
+		"response": terminalReceived,
+	})
+
+	log.Printf("End => Get Terminal Overview")
+}
+
+func (server *Server) GetTerminals(c *gin.Context) {
+	log.Printf("Begin => Get Terminals")
+
+	terminal := models.Terminal{}
+	terminals, err := terminal.FindAllTerminals(server.DB)
+	if err != nil {
+		log.Printf("No terminal found")
+		errList["no_terminal"] = "No terminal found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	stringifiedTerminalReceived, _ := json.Marshal(terminals)
+	log.Printf("Get Terminals : ", string(stringifiedTerminalReceived))
 	c.JSON(http.StatusOK, gin.H{
 		"response": terminals,
 	})
+
+	log.Printf("End => Get Terminals")
 }
 
 func (server *Server) GetLatestTerminals(c *gin.Context) {
@@ -110,7 +154,7 @@ func (server *Server) CreateTerminal(c *gin.Context) {
 	terminal := models.Terminal{}
 	err = json.Unmarshal(body, &terminal)
 	if err != nil {
-		fmt.Println(err.Error())
+		log.Printf(err.Error())
 		errList["unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,

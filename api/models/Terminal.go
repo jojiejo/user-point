@@ -84,7 +84,41 @@ func (terminal *Terminal) FindAllTerminals(db *gorm.DB) (*[]Terminal, error) {
 
 	if len(terminals) > 0 {
 		for i, _ := range terminals {
-			siteErr := db.Debug().Model(&City{}).Unscoped().Where("id = ?", terminals[i].SiteID).Order("id desc").Take(&terminals[i].Site).Error
+			siteErr := db.Debug().Model(&Site{}).Unscoped().Where("id = ?", terminals[i].SiteID).Order("id desc").Take(&terminals[i].Site).Error
+			if siteErr != nil {
+				return &[]Terminal{}, err
+			}
+
+			cityErr := db.Debug().Model(&City{}).Unscoped().Where("id = ?", terminals[i].Site.CityID).Order("id desc").Take(&terminals[i].Site.City).Error
+			if cityErr != nil {
+				return &[]Terminal{}, err
+			}
+
+			siteTypeErr := db.Debug().Model(&SiteType{}).Unscoped().Where("id = ?", terminals[i].Site.SiteTypeID).Order("id desc").Take(&terminals[i].Site.SiteType).Error
+			if siteTypeErr != nil {
+				return &[]Terminal{}, err
+			}
+		}
+	}
+
+	return &terminals, nil
+}
+
+func (terminal *Terminal) FindTerminalOverview(db *gorm.DB, retailerID uint64, siteID uint64) (*[]Terminal, error) {
+	var err error
+	terminals := []Terminal{}
+	if retailerID = 0 {
+		
+	}
+
+	err = db.Debug().Model(&Terminal{}).Unscoped().Order("terminal_sn, terminal_id, merchant_id, created_at desc").Find(&terminals).Error
+	if err != nil {
+		return &[]Terminal{}, err
+	}
+
+	if len(terminals) > 0 {
+		for i, _ := range terminals {
+			siteErr := db.Debug().Model(&Site{}).Unscoped().Where("id = ?", terminals[i].SiteID).Order("id desc").Take(&terminals[i].Site).Error
 			if siteErr != nil {
 				return &[]Terminal{}, err
 			}

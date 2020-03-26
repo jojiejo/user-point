@@ -78,6 +78,7 @@ func (server *Server) GetActiveSites(c *gin.Context) {
 }
 
 func (server *Server) GetSite(c *gin.Context) {
+	log.Printf("Begin => Get Site by ID")
 	siteID := c.Param("id")
 	convertedSiteID, err := strconv.ParseUint(siteID, 10, 64)
 	if err != nil {
@@ -87,8 +88,8 @@ func (server *Server) GetSite(c *gin.Context) {
 		})
 		return
 	}
-	site := models.Site{}
 
+	site := models.Site{}
 	siteReceived, err := site.FindSiteByID(server.DB, convertedSiteID)
 	if err != nil {
 		errList["no_site"] = "No site found"

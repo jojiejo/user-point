@@ -11,7 +11,7 @@ import (
 )
 
 func (server *Server) GetPayers(c *gin.Context) {
-	payer := models.Payer{}
+	payer := models.ShortenedPayer{}
 	payers, err := payer.FindAllPayers(server.DB)
 	if err != nil {
 		errList["no_payer"] = "No payer found"
@@ -82,7 +82,7 @@ func (server *Server) UpdateConfiguration(c *gin.Context) {
 		return
 	}
 
-	payer := models.Payer{}
+	payer := models.ShortenedPayer{}
 	err = json.Unmarshal(body, &payer)
 	if err != nil {
 		errList["unmarshal_error"] = "Cannot unmarshal body"
@@ -146,7 +146,7 @@ func (server *Server) UpdateInvoiceProduction(c *gin.Context) {
 		return
 	}
 
-	payer := models.Payer{}
+	payer := models.ShortenedPayer{}
 	err = json.Unmarshal(body, &payer)
 	if err != nil {
 		errList["unmarshal_error"] = "Cannot unmarshal body"
@@ -210,7 +210,7 @@ func (server *Server) UpdateCredit(c *gin.Context) {
 		return
 	}
 
-	payer := models.Payer{}
+	payer := models.ShortenedPayer{}
 	err = json.Unmarshal(body, &payer)
 	if err != nil {
 		errList["unmarshal_error"] = "Cannot unmarshal body"
