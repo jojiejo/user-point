@@ -51,6 +51,11 @@ func (terminal *Terminal) Validate() map[string]string {
 		errorMessages["terminal_id"] = err.Error()
 	}
 
+	if strings.HasPrefix(terminal.TerminalID, "4") == false {
+		err = errors.New("Terminal ID must be started with number 4")
+		errorMessages["terminal_id"] = err.Error()
+	}
+
 	if terminal.TerminalID == "" {
 		err = errors.New("Terminal ID field is required")
 		errorMessages["terminal_id"] = err.Error()
@@ -58,6 +63,11 @@ func (terminal *Terminal) Validate() map[string]string {
 
 	if len(terminal.MerchantID) != 15 {
 		err = errors.New("Merchant ID must contain 15 characters")
+		errorMessages["merchant_id"] = err.Error()
+	}
+
+	if strings.HasPrefix(terminal.MerchantID, "SHELL") == false {
+		err = errors.New("Merchant ID must be started with SHELL")
 		errorMessages["merchant_id"] = err.Error()
 	}
 
@@ -107,9 +117,6 @@ func (terminal *Terminal) FindAllTerminals(db *gorm.DB) (*[]Terminal, error) {
 func (terminal *Terminal) FindTerminalOverview(db *gorm.DB, retailerID uint64, siteID uint64) (*[]Terminal, error) {
 	var err error
 	terminals := []Terminal{}
-	if retailerID = 0 {
-		
-	}
 
 	err = db.Debug().Model(&Terminal{}).Unscoped().Order("terminal_sn, terminal_id, merchant_id, created_at desc").Find(&terminals).Error
 	if err != nil {
