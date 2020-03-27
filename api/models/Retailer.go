@@ -139,8 +139,7 @@ func (retailer *Retailer) FindAllLatestRetailers(db *gorm.DB) (*[]Retailer, erro
 func (retailer *Retailer) FindAllActiveRetailers(db *gorm.DB) (*[]Retailer, error) {
 	var err error
 	retailers := []Retailer{}
-	dateTimeNow := time.Now()
-	err = db.Debug().Model(&Retailer{}).Unscoped().Where("deleted_at IS NULL OR deleted_at > ?", dateTimeNow).Order("sold_to_number, created_at desc").Find(&retailers).Error
+	err = db.Debug().Raw("EXEC spAPI_Retailer_GetActive").Scan(&retailers).Error
 	if err != nil {
 		return &[]Retailer{}, err
 	}

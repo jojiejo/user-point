@@ -140,8 +140,8 @@ func (site *Site) FindAllLatestSites(db *gorm.DB) (*[]Site, error) {
 func (site *Site) FindAllActiveSites(db *gorm.DB) (*[]Site, error) {
 	var err error
 	sites := []Site{}
-	dateTimeNow := time.Now()
-	err = db.Debug().Model(&Site{}).Unscoped().Where("created_at <= ? AND deleted_at IS NULL", dateTimeNow).Order("ship_to_number, created_at desc").Find(&sites).Error
+	err = db.Debug().Raw("EXEC spAPI_Site_GetActive").Scan(&sites).Error
+	//err = db.Debug().Model(&Site{}).Unscoped().Where("created_at <= ? AND deleted_at IS NULL", dateTimeNow).Order("ship_to_number, created_at desc").Find(&sites).Error
 	if err != nil {
 		return &[]Site{}, err
 	}
