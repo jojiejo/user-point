@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"fleethub.shell.co.id/api/models"
 	"github.com/gin-gonic/gin"
@@ -298,9 +299,18 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 	}
 
 	originalSite := models.Site{}
-	err = server.DB.Debug().Model(models.Site{}).Where("id = ?", siteid).Order("id desc").Take(&originalSite).Error
+	err = server.DB.Debug().Unscoped().Model(models.Site{}).Where("id = ?", siteid).Order("id desc").Take(&originalSite).Error
 	if err != nil {
 		errList["no_site"] = "No site found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	dateTimeNow := time.Now()
+	if dateTimeNow.After(*originalSite.DeletedAt) {
+		errList["time_exceeded"] = "Ended at time field can not be updated"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})

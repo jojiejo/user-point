@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
 
 	"fleethub.shell.co.id/api/models"
 	"github.com/gin-gonic/gin"
@@ -291,9 +292,18 @@ func (server *Server) DeactivateRetailerLater(c *gin.Context) {
 	}
 
 	originalRetailer := models.Retailer{}
-	err = server.DB.Debug().Model(models.Retailer{}).Where("id = ?", retailerid).Order("id desc").Take(&originalRetailer).Error
+	err = server.DB.Debug().Model(models.Retailer{}).Unscoped().Where("id = ?", retailerid).Order("id desc").Take(&originalRetailer).Error
 	if err != nil {
 		errList["no_retailer"] = "No retailer found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	dateTimeNow := time.Now()
+	if dateTimeNow.After(*originalRetailer.DeletedAt) {
+		errList["time_exceeded"] = "Ended at time field can not be updated"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})

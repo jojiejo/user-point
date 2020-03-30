@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"fleethub.shell.co.id/api/models"
 	"github.com/gin-gonic/gin"
@@ -318,9 +319,18 @@ func (server *Server) DeactivateTerminalLater(c *gin.Context) {
 	}
 
 	originalTerminal := models.Terminal{}
-	err = server.DB.Debug().Model(models.Terminal{}).Where("id = ?", terminalid).Order("id desc").Take(&originalTerminal).Error
+	err = server.DB.Debug().Model(models.Terminal{}).Unscoped().Where("id = ?", terminalid).Order("id desc").Take(&originalTerminal).Error
 	if err != nil {
 		errList["no_post"] = "No terminal found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	dateTimeNow := time.Now()
+	if dateTimeNow.After(*originalTerminal.DeletedAt) {
+		errList["time_exceeded"] = "Ended at time field can not be updated"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})

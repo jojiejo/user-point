@@ -127,7 +127,7 @@ func (retailerSiteRelation *RetailerSiteRelation) CreateRetailerSiteRelation(db 
 	tx := db.Begin()
 	dateTimeNow := time.Now()
 
-	err = db.Debug().Model(&RetailerSiteRelation{}).Where("retailer_id = ? AND site_id = ? AND ended_at IS NULL", retailerSiteRelation.RetailerID, retailerSiteRelation.SiteID).Updates(
+	err = db.Debug().Model(&RetailerSiteRelation{}).Where("site_id = ? AND ended_at IS NULL", retailerSiteRelation.RetailerID, retailerSiteRelation.SiteID).Updates(
 		RetailerSiteRelation{
 			EndedAt:   &retailerSiteRelation.StartedAt,
 			UpdatedAt: &dateTimeNow,

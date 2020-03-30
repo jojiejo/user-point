@@ -114,8 +114,6 @@ func (s *Server) initializeRoutes() {
 		cardGroup.DELETE("/:id", s.DeactivateCardGroup)
 	}
 
-	//Member Card
-
 	//GSAP Master Data
 	gsap_master_data := s.Router.Group("/gsap-customer-master-data")
 	{
