@@ -308,13 +308,15 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 		return
 	}
 
-	dateTimeNow := time.Now()
-	if dateTimeNow.After(*originalSite.DeletedAt) {
-		errList["time_exceeded"] = "Ended at time field can not be updated"
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": errList,
-		})
-		return
+	if originalSite.DeletedAt != nil {
+		dateTimeNow := time.Now()
+		if dateTimeNow.After(*originalSite.DeletedAt) {
+			errList["time_exceeded"] = "Ended at time field can not be updated"
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": errList,
+			})
+			return
+		}
 	}
 
 	body, err := ioutil.ReadAll(c.Request.Body)

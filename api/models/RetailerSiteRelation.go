@@ -15,7 +15,7 @@ type RetailerSiteRelation struct {
 	Retailer          RetailerSiteRelationDisplayedRetailer `json:"retailer"`
 	SiteID            int                                   `gorm:"not null" json:"site_id"`
 	Site              RetailerSiteRelationDisplayedSite     `json:"site"`
-	BankAccountNumber string                                `json:"bank_account_number"`
+	BankAccountNumber string                                `gorm:"not null;size:4" json:"bank_account_number"`
 	StartedAt         time.Time                             `json:"started_at"`
 	EndedAt           *time.Time                            `json:"ended_at"`
 	CreatedAt         time.Time                             `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
