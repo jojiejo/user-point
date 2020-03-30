@@ -119,4 +119,11 @@ func (s *Server) initializeRoutes() {
 	{
 		gsap_master_data.GET("/:id", s.GetCustomerMasterData)
 	}
+
+	//Fee
+	s.Router.GET("/fees", s.GetFees)
+	fee := s.Router.Group("/fee")
+	{
+		fee.GET("/", s.GetFees)
+	}
 }
