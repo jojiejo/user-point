@@ -250,7 +250,7 @@ func (retailer *Retailer) DeactivateRetailerNow(db *gorm.DB) (int64, error) {
 
 func (retailer *Retailer) DeactivateRetailerLater(db *gorm.DB) (int64, error) {
 	var err error
-	err = db.Debug().Model(&Retailer{}).Where("id = ?", retailer.ID).Updates(
+	err = db.Debug().Model(&Retailer{}).Unscoped().Where("id = ?", retailer.ID).Updates(
 		Retailer{
 			DeletedAt: retailer.DeletedAt,
 		}).Error

@@ -267,7 +267,7 @@ func (site *Site) DeactivateSiteNow(db *gorm.DB) (int64, error) {
 
 func (site *Site) DeactivateSiteLater(db *gorm.DB) (int64, error) {
 	var err error
-	err = db.Debug().Model(&Site{}).Where("id = ?", site.ID).Updates(
+	err = db.Debug().Model(&Site{}).Unscoped().Where("id = ?", site.ID).Updates(
 		Site{
 			DeletedAt: site.DeletedAt,
 		}).Error

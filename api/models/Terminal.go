@@ -282,7 +282,7 @@ func (terminal *Terminal) DeactivateTerminalNow(db *gorm.DB) (int64, error) {
 
 func (terminal *Terminal) DeactivateTerminalLater(db *gorm.DB) (int64, error) {
 	var err error
-	err = db.Debug().Model(&Terminal{}).Where("id = ?", terminal.ID).Updates(
+	err = db.Debug().Model(&Terminal{}).Unscoped().Where("id = ?", terminal.ID).Updates(
 		Terminal{
 			DeletedAt: terminal.DeletedAt,
 		}).Error
