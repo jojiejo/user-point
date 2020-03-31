@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 
 	"fleethub.shell.co.id/api/models"
 	"github.com/gin-gonic/gin"
@@ -31,4 +32,39 @@ func (server *Server) GetFees(c *gin.Context) {
 	})
 
 	log.Printf("End => Get Fees")
+}
+
+func (server *Server) GetFee(c *gin.Context) {
+	log.Printf("Begin => Get Fee by ID")
+	feeID := c.Param("id")
+	convertedFeeID, err := strconv.ParseUint(feeID, 10, 64)
+	if err != nil {
+		errString := "Invalid request"
+		log.Printf(errString)
+		errList["invalid_request"] = errString
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	fee := models.Fee{}
+	feeReceived, err := fee.FindFeeByID(server.DB, convertedFeeID)
+	if err != nil {
+		errString := "Invalid request"
+		log.Printf(errString)
+		errList["no_fee"] = errString
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	stringifiedReceivedFee, _ := json.Marshal(feeReceived)
+	log.Printf("Get Fees : ", string(stringifiedReceivedFee))
+	c.JSON(http.StatusOK, gin.H{
+		"response": fee,
+	})
+
+	log.Printf("Begin => Get Fee by ID")
 }
