@@ -48,7 +48,7 @@ func (branch *ShortenedBranch) FindBranchByCCID(db *gorm.DB, CCID uint64) (*[]Sh
 
 func (branch *Branch) FindBranchByID(db *gorm.DB, branchID uint64) (*Branch, error) {
 	var err error
-	err = db.Debug().Model(&Branch{}).Unscoped().Where("sub_corporate_id = ?", branchID).Order("created_at desc").Find(&branch).Error
+	err = db.Debug().Model(&Branch{}).Unscoped().Where("sub_corporate_id = ?", branchID).Order("created_at desc").Take(&branch).Error
 	if err != nil {
 		return &Branch{}, err
 	}

@@ -24,6 +24,7 @@ type Payer struct {
 	MCMSID                   int                    `gorm:"not null;" json:"mcms_id"`
 	GSAPCustomerMasterData   GSAPCustomerMasterData `json:"gsap_customer_master_data"`
 	LatestPayerStatus        HistoricalPayerStatus  `json:"latest_payer_status"`
+	Branch                   []ShortenedBranch      `json:"branch"`
 	CreatedAt                time.Time              `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt                *time.Time             `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt                *time.Time             `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
@@ -169,34 +170,34 @@ func (payer *ShortenedPayer) FindAllPayers(db *gorm.DB) (*[]ShortenedPayer, erro
 	return &payers, nil
 }
 
-func (payer *Payer) FindPayerByCCID(db *gorm.DB, CCID uint64) (*[]Payer, error) {
+func (payer *Payer) FindPayerByCCID(db *gorm.DB, CCID uint64) (*Payer, error) {
 	var err error
-	payers := []Payer{}
-	err = db.Debug().Model(&Payer{}).Unscoped().Where("cc_id = ?", CCID).Order("created_at desc").Find(&payers).Error
+	err = db.Debug().Model(&Payer{}).Unscoped().Where("cc_id = ?", CCID).Order("created_at desc").Take(&payer).Error
 	if err != nil {
-		return &[]Payer{}, err
+		return &Payer{}, err
 	}
 
-	if len(payers) > 0 {
-		for i, _ := range payers {
-			customerDataErr := db.Debug().Model(&Payer{}).Unscoped().Where("mcms_id = ?", payers[i].MCMSID).Order("mcms_id desc").Take(&payers[i].GSAPCustomerMasterData).Error
-			if customerDataErr != nil {
-				return &[]Payer{}, err
-			}
-
-			latestStatusErr := db.Debug().Model(&HistoricalPayerStatus{}).Where("cc_id = ?", payers[i].CCID).Order("created_at desc").Find(&payers[i].LatestPayerStatus).Error
-			if latestStatusErr != nil {
-				return &[]Payer{}, err
-			}
-
-			statusErr := db.Debug().Model(&PayerStatus{}).Where("id = ?", payers[i].LatestPayerStatus.PayerStatusID).Order("id desc").Take(&payers[i].LatestPayerStatus.PayerStatus).Error
-			if statusErr != nil {
-				return &[]Payer{}, err
-			}
-		}
+	customerDataErr := db.Debug().Model(&Payer{}).Unscoped().Where("mcms_id = ?", payer.MCMSID).Order("mcms_id desc").Take(&payer.GSAPCustomerMasterData).Error
+	if customerDataErr != nil {
+		return &Payer{}, err
 	}
 
-	return &payers, nil
+	latestStatusErr := db.Debug().Model(&HistoricalPayerStatus{}).Where("cc_id = ?", payer.CCID).Order("created_at desc").Find(&payer.LatestPayerStatus).Error
+	if latestStatusErr != nil {
+		return &Payer{}, err
+	}
+
+	statusErr := db.Debug().Model(&PayerStatus{}).Where("id = ?", payer.LatestPayerStatus.PayerStatusID).Order("id desc").Take(&payer.LatestPayerStatus.PayerStatus).Error
+	if statusErr != nil {
+		return &Payer{}, err
+	}
+
+	branchErr := db.Debug().Model(&ShortenedBranch{}).Where("cc_id = ?", payer.CCID).Order("sub_corporate_id desc").Find(&payer.Branch).Error
+	if branchErr != nil {
+		return &Payer{}, err
+	}
+
+	return payer, nil
 }
 
 func (payer *ShortenedPayer) UpdatePayerConfiguration(db *gorm.DB) (*ShortenedPayer, error) {
