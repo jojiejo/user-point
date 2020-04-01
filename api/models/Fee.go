@@ -22,6 +22,16 @@ type Fee struct {
 	DeletedAt *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
 }
 
+type FeeChargingPeriod struct {
+	ID   int    `gorm:"primary_key;auto_increment" json:"id"`
+	Name string `gorm:"not null;" json:"name"`
+}
+
+type FeeChargingCardStatus struct {
+	ID   int    `gorm:"primary_key;auto_increment" json:"id"`
+	Name string `gorm:"not null;" json:"name"`
+}
+
 type FeeType struct {
 	ID   int    `gorm:"primary_key;auto_increment" json:"id"`
 	Name string `gorm:"not null;" json:"name"`
