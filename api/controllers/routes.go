@@ -14,6 +14,9 @@ func (s *Server) initializeRoutes() {
 		gvd.PUT("/:id", s.UpdateGlobalVariableDetail)
 	}
 
+	//Card Status
+	s.Router.GET("/card-status", s.GetAllCardStatus)
+
 	//Province
 	s.Router.GET("/provinces", s.GetProvinces)
 	s.Router.GET("/province/:id", s.GetProvince)
@@ -121,10 +124,10 @@ func (s *Server) initializeRoutes() {
 	}
 
 	//Fee
-	s.Router.GET("/fees", s.GetFees)
-	s.Router.GET("/fees/initial", s.GetFees)
+	s.Router.GET("/fee-names", s.GetFeeNames)
+	s.Router.GET("/fees/initial", s.GetInitialFees)
 	fee := s.Router.Group("/fee")
 	{
-		fee.GET("/", s.GetFees)
+		fee.GET("/:id", s.GetFee)
 	}
 }

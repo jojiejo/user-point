@@ -10,28 +10,28 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (server *Server) GetFees(c *gin.Context) {
-	log.Printf("Begin => Get Fees")
+func (server *Server) GetFeeNames(c *gin.Context) {
+	log.Printf("Begin => Get Fee Names")
 
-	fee := models.Fee{}
-	fees, err := fee.FindAllFees(server.DB)
+	fn := models.FeeName{}
+	fns, err := fn.FindAllFeeNames(server.DB)
 	if err != nil {
-		errString := "No fee found"
+		errString := "No fee name found"
 		log.Printf(errString)
-		errList["no_fee"] = errString
+		errList["no_fee_name"] = errString
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
 		return
 	}
 
-	stringifiedReceivedFee, _ := json.Marshal(fees)
-	log.Printf("Get Fees : ", string(stringifiedReceivedFee))
+	stringifiedReceivedFee, _ := json.Marshal(fns)
+	log.Printf("Get Fee Names : ", string(stringifiedReceivedFee))
 	c.JSON(http.StatusOK, gin.H{
-		"response": fees,
+		"response": fns,
 	})
 
-	log.Printf("End => Get Fees")
+	log.Printf("End => Get Fee Names")
 }
 
 func (server *Server) GetInitialFees(c *gin.Context) {
@@ -75,7 +75,7 @@ func (server *Server) GetFee(c *gin.Context) {
 	fee := models.Fee{}
 	feeReceived, err := fee.FindFeeByID(server.DB, convertedFeeID)
 	if err != nil {
-		errString := "Invalid request"
+		errString := "No fee found"
 		log.Printf(errString)
 		errList["no_fee"] = errString
 		c.JSON(http.StatusNotFound, gin.H{
