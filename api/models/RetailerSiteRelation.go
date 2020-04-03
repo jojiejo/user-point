@@ -169,7 +169,7 @@ func (retailerSiteRelation *RetailerSiteRelation) UnlinkRetailerSiteRelation(db 
 	dateTimeNow := time.Now()
 	err = db.Debug().Model(&RetailerSiteRelation{}).Where("id = ?", retailerSiteRelation.ID).Updates(
 		RetailerSiteRelation{
-			EndedAt:   &dateTimeNow,
+			EndedAt:   retailerSiteRelation.EndedAt,
 			UpdatedAt: &dateTimeNow,
 		}).Error
 

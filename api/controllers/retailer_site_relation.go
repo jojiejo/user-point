@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
 
 	"fleethub.shell.co.id/api/models"
 	"github.com/gin-gonic/gin"
@@ -170,7 +171,38 @@ func (server *Server) UnlinkRetailerSiteRelation(c *gin.Context) {
 		return
 	}
 
-	_, err = originalRelation.UnlinkRetailerSiteRelation(server.DB)
+	if originalRelation.EndedAt != nil {
+		dateTimeNow := time.Now()
+		if dateTimeNow.After(*originalRelation.EndedAt) {
+			errList["time_exceeded"] = "Ended at time field can not be updated"
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": errList,
+			})
+			return
+		}
+	}
+
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		errList["invalid_body"] = "Unable to get request"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	relation := models.RetailerSiteRelation{}
+	err = json.Unmarshal(body, &relation)
+	if err != nil {
+		errList["unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+	relation.ID = originalRelation.ID
+
+	_, err = relation.UnlinkRetailerSiteRelation(server.DB)
 	if err != nil {
 		errList["other_error"] = "Please try again later"
 		c.JSON(http.StatusInternalServerError, gin.H{
