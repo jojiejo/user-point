@@ -308,6 +308,27 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 		return
 	}
 
+	//Count whether there is still a relation active
+	dateTimeNow := time.Now()
+	var activeRelationCount int
+	err = server.DB.Debug().Model(models.RetailerSiteRelation{}).Unscoped().Where("site_id = ? AND started_at <= ? AND ( ended_at IS NULL OR ended_at >= ? )", originalSite.OriginalID, dateTimeNow, dateTimeNow).Count(&activeRelationCount).Error
+	if err != nil {
+		errList["unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	if activeRelationCount > 0 {
+		errList["linked_retailer"] = "Selected site is still linked to a retailer"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	//Check if the new deleted_at input is greater than the previous deleted_at
 	if originalSite.DeletedAt != nil {
 		dateTimeNow := time.Now()
 		if dateTimeNow.After(*originalSite.DeletedAt) {
