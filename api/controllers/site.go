@@ -349,14 +349,6 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 		return
 	}
 
-	if activeTerminalWithNullEndedCount > 0 {
-		errList["linked_terminal"] = "Selected site is still linked to a terminal"
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": errList,
-		})
-		return
-	}
-
 	var activeTerminalWithFilledEndedCount int
 	err = server.DB.Debug().Model(models.Terminal{}).Unscoped().Where("site_id = ? AND created_at <= ? AND deleted_at >= ?", originalSite.OriginalID, dateTimeNow, dateTimeNow).Count(&activeTerminalWithFilledEndedCount).Error
 	if err != nil {
