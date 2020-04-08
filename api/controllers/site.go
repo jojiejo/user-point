@@ -361,6 +361,7 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 		return
 	}
 
+	log.Println("Terminal : ", originalSite.OriginalID, dateTimeNow)
 	log.Println("Terminal : ", activeTerminalWithNullEndedCount, activeTerminalWithFilledEndedCount)
 
 	if activeTerminalWithNullEndedCount > 0 || activeTerminalWithFilledEndedCount > 0 {
