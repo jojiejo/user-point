@@ -330,9 +330,6 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 		return
 	}
 
-	var activeRelationCount int
-	err = server.DB.Debug().MOdel(models.RetailerSiteRelation{}).Raw()
-
 	if activeRelationWithNullEndedCount > 0 || activeRelationWithFilledEndedCount > 0 {
 		errList["linked_retailer"] = "Selected site is still linked to a retailer"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
