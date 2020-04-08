@@ -311,7 +311,7 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 	//Count whether there is still a relation active
 	dateTimeNow := time.Now()
 	var activeRelationWithNullEndedCount int
-	err = server.DB.Debug().Model(models.RetailerSiteRelation{}).Unscoped().Where("site_id = ? AND started_at <= ? AND ended_at IS NULL", originalSite.OriginalID, dateTimeNow).Count(&activeRelationWithNullEndedCount).Error
+	err = server.DB.Debug().Model(models.RetailerSiteRelation{}).Unscoped().Where("site_id = ? AND started_at <= ? AND ended_at IS NULL", originalSite.OriginalID, dateTimeNow).Order("id desc").Count(&activeRelationWithNullEndedCount).Error
 	if err != nil {
 		errList["unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -321,7 +321,7 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 	}
 
 	var activeRelationWithFilledEndedCount int
-	err = server.DB.Debug().Model(models.RetailerSiteRelation{}).Unscoped().Where("site_id = ? AND started_at <= ? AND ended_at >= ?", originalSite.OriginalID, dateTimeNow, dateTimeNow).Count(&activeRelationWithFilledEndedCount).Error
+	err = server.DB.Debug().Model(models.RetailerSiteRelation{}).Unscoped().Where("site_id = ? AND started_at <= ? AND ended_at >= ?", originalSite.OriginalID, dateTimeNow, dateTimeNow).Order("id desc").Count(&activeRelationWithFilledEndedCount).Error
 	if err != nil {
 		errList["unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -330,7 +330,8 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 		return
 	}
 
-	log.Println("Relation : ", activeRelationWithNullEndedCount, activeRelationWithFilledEndedCount)
+	var activeRelationCount int
+	err = server.DB.Debug().MOdel(models.RetailerSiteRelation{}).Raw()
 
 	if activeRelationWithNullEndedCount > 0 || activeRelationWithFilledEndedCount > 0 {
 		errList["linked_retailer"] = "Selected site is still linked to a retailer"
@@ -342,7 +343,7 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 
 	//Count wheter there is still a terminal active
 	var activeTerminalWithNullEndedCount int
-	err = server.DB.Debug().Model(models.Terminal{}).Unscoped().Where("site_id = ? AND created_at <= ? AND deleted_at IS NULL", originalSite.OriginalID, dateTimeNow).Count(&activeTerminalWithNullEndedCount).Error
+	err = server.DB.Debug().Model(models.Terminal{}).Unscoped().Where("site_id = ? AND created_at <= ? AND deleted_at IS NULL", originalSite.OriginalID, dateTimeNow).Order("id desc").Count(&activeTerminalWithNullEndedCount).Error
 	if err != nil {
 		errList["unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -352,7 +353,7 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 	}
 
 	var activeTerminalWithFilledEndedCount int
-	err = server.DB.Debug().Model(models.Terminal{}).Unscoped().Where("site_id = ? AND created_at <= ? AND deleted_at >= ?", originalSite.OriginalID, dateTimeNow, dateTimeNow).Count(&activeTerminalWithFilledEndedCount).Error
+	err = server.DB.Debug().Model(models.Terminal{}).Unscoped().Where("site_id = ? AND created_at <= ? AND deleted_at >= ?", originalSite.OriginalID, dateTimeNow, dateTimeNow).Order("id desc").Count(&activeTerminalWithFilledEndedCount).Error
 	if err != nil {
 		errList["unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -360,9 +361,6 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 		})
 		return
 	}
-
-	log.Println("Terminal : ", originalSite.OriginalID, dateTimeNow)
-	log.Println("Terminal : ", activeTerminalWithNullEndedCount, activeTerminalWithFilledEndedCount)
 
 	if activeTerminalWithNullEndedCount > 0 || activeTerminalWithFilledEndedCount > 0 {
 		errList["linked_terminal"] = "Selected site is still linked to a terminal"
