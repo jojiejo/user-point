@@ -330,6 +330,8 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 		return
 	}
 
+	log.Println("Relation : ", activeRelationWithNullEndedCount, activeRelationWithFilledEndedCount)
+
 	if activeRelationWithNullEndedCount > 0 || activeRelationWithFilledEndedCount > 0 {
 		errList["linked_retailer"] = "Selected site is still linked to a retailer"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -358,6 +360,8 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 		})
 		return
 	}
+
+	log.Println("Terminal : ", activeTerminalWithNullEndedCount, activeTerminalWithFilledEndedCount)
 
 	if activeTerminalWithNullEndedCount > 0 || activeTerminalWithFilledEndedCount > 0 {
 		errList["linked_terminal"] = "Selected site is still linked to a terminal"
