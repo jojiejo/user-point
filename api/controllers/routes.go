@@ -124,10 +124,11 @@ func (s *Server) initializeRoutes() {
 	}
 
 	//Fee
-	s.Router.GET("/fee-names", s.GetFeeNames)
 	s.Router.GET("/fees/initial", s.GetInitialFees)
 	fee := s.Router.Group("/fee")
 	{
-		fee.GET("/:id", s.GetFee)
+		fee.POST("/ad-hoc", s.CreateAdHocFee)
+		fee.PUT("/ad-hoc/:id", s.UpdateAdHocFee)
+		fee.DELETE("/ad-hoc/:id", s.DeactivateAdHocFee)
 	}
 }

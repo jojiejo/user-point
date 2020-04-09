@@ -309,9 +309,12 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 	}
 
 	//Count whether there is still a relation active
-	dateTimeNow := time.Now()
-	var activeRelationWithNullEndedCount int
-	err = server.DB.Debug().Model(models.RetailerSiteRelation{}).Unscoped().Where("site_id = ? AND started_at <= ? AND ended_at IS NULL", originalSite.OriginalID, dateTimeNow).Order("id desc").Count(&activeRelationWithNullEndedCount).Error
+	type ActiveRelation struct {
+		SiteCount int `json:"site_count"`
+	}
+
+	activeRelation := ActiveRelation{}
+	err = server.DB.Debug().Raw("EXEC spAPI_RetailerSiteRelation_CountActiveSite ?", originalSite.OriginalID).Scan(&activeRelation).Error
 	if err != nil {
 		errList["unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -320,17 +323,7 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 		return
 	}
 
-	var activeRelationWithFilledEndedCount int
-	err = server.DB.Debug().Model(models.RetailerSiteRelation{}).Unscoped().Where("site_id = ? AND started_at <= ? AND ended_at >= ?", originalSite.OriginalID, dateTimeNow, dateTimeNow).Order("id desc").Count(&activeRelationWithFilledEndedCount).Error
-	if err != nil {
-		errList["unmarshal_error"] = "Cannot unmarshal body"
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": errList,
-		})
-		return
-	}
-
-	if activeRelationWithNullEndedCount > 0 || activeRelationWithFilledEndedCount > 0 {
+	if activeRelation.SiteCount > 0 {
 		errList["linked_retailer"] = "Selected site is still linked to a retailer"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,
@@ -339,8 +332,12 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 	}
 
 	//Count wheter there is still a terminal active
-	var activeTerminalWithNullEndedCount int
-	err = server.DB.Debug().Model(models.Terminal{}).Unscoped().Where("site_id = ? AND created_at <= ? AND deleted_at IS NULL", originalSite.OriginalID, dateTimeNow).Order("id desc").Count(&activeTerminalWithNullEndedCount).Error
+	type ActiveTerminal struct {
+		SiteCount int `json:"site_count"`
+	}
+
+	activeTerminal := ActiveTerminal{}
+	err = server.DB.Debug().Raw("EXEC spAPI_Terminal_CountActiveSite ?", originalSite.OriginalID).Scan(&activeTerminal).Error
 	if err != nil {
 		errList["unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -349,18 +346,8 @@ func (server *Server) DeactivateSiteLater(c *gin.Context) {
 		return
 	}
 
-	var activeTerminalWithFilledEndedCount int
-	err = server.DB.Debug().Model(models.Terminal{}).Unscoped().Where("site_id = ? AND created_at <= ? AND deleted_at >= ?", originalSite.OriginalID, dateTimeNow, dateTimeNow).Order("id desc").Count(&activeTerminalWithFilledEndedCount).Error
-	if err != nil {
-		errList["unmarshal_error"] = "Cannot unmarshal body"
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": errList,
-		})
-		return
-	}
-
-	if activeTerminalWithNullEndedCount > 0 || activeTerminalWithFilledEndedCount > 0 {
-		errList["linked_terminal"] = "Selected site is still linked to a terminal"
+	if activeTerminal.SiteCount > 0 {
+		errList["linked_retailer"] = "Selected site is still linked to a terminal"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,
 		})

@@ -302,9 +302,12 @@ func (server *Server) DeactivateRetailerLater(c *gin.Context) {
 	}
 
 	//Count whether there is still a relation active
-	dateTimeNow := time.Now()
-	var activeRelationWithNullEndedCount int
-	err = server.DB.Debug().Model(models.RetailerSiteRelation{}).Unscoped().Where("retailer_id = ? AND started_at <= ? AND ended_at IS NULL", originalRetailer.OriginalID, dateTimeNow).Count(&activeRelationWithNullEndedCount).Error
+	type ActiveRelation struct {
+		RetailerCount int `json:"retailer_count"`
+	}
+
+	activeRelation := ActiveRelation{}
+	err = server.DB.Debug().Raw("EXEC spAPI_RetailerSiteRelation_CountActiveRetailer ?", originalRetailer.OriginalID).Scan(&activeRelation).Error
 	if err != nil {
 		errList["unmarshal_error"] = "Cannot unmarshal body"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -313,17 +316,7 @@ func (server *Server) DeactivateRetailerLater(c *gin.Context) {
 		return
 	}
 
-	var activeRelationWithFilledEndedCount int
-	err = server.DB.Debug().Model(models.RetailerSiteRelation{}).Unscoped().Where("retailer_id = ? AND started_at <= ? AND ended_at >= ?", originalRetailer.OriginalID, dateTimeNow, dateTimeNow).Count(&activeRelationWithFilledEndedCount).Error
-	if err != nil {
-		errList["unmarshal_error"] = "Cannot unmarshal body"
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": errList,
-		})
-		return
-	}
-
-	if activeRelationWithNullEndedCount > 0 || activeRelationWithFilledEndedCount > 0 {
+	if activeRelation.RetailerCount > 0 {
 		errList["linked_retailer"] = "Selected retailer is still linked to a site"
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,
