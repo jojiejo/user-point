@@ -90,6 +90,10 @@ func (s *Server) initializeRoutes() {
 		terminal.PATCH("/:id", s.ReactivateTerminal)
 	}
 
+	//Payer Association
+	s.Router.GET("/payer-associations", s.GetPayerAssociations)
+	s.Router.GET("/payer-association/:id/payers", s.GetPayerByPayerAssociationID)
+
 	//Payer
 	s.Router.GET("/payers", s.GetPayers)
 	payer := s.Router.Group("/payer")
@@ -124,11 +128,12 @@ func (s *Server) initializeRoutes() {
 	}
 
 	//Fee
-	s.Router.GET("/fees/initial", s.GetInitialFees)
-	fee := s.Router.Group("/fee")
+	s.Router.GET("/initial-fees", s.GetInitialFees)
+	initialFee := s.Router.Group("/initial-fee")
 	{
-		fee.POST("/ad-hoc", s.CreateAdHocFee)
-		fee.PUT("/ad-hoc/:id", s.UpdateAdHocFee)
-		fee.DELETE("/ad-hoc/:id", s.DeactivateAdHocFee)
+		initialFee.GET("/:id", s.GetInitialFee)
+		initialFee.POST("/", s.CreateFee)
+		initialFee.PUT("/:id", s.UpdateFee)
+		initialFee.DELETE("/:id", s.DeactivateFee)
 	}
 }

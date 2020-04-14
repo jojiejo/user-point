@@ -1,6 +1,10 @@
 package models
 
-import "github.com/jinzhu/gorm"
+import (
+	"time"
+
+	"github.com/jinzhu/gorm"
+)
 
 type GSAPCustomerMasterData struct {
 	MCMSID               int               `gorm:"primary_key;auto_increment" json:"id"`
@@ -48,26 +52,38 @@ type GSAPCustomerMasterData struct {
 	DistributionChannel  string            `json:"distribution_channel"`
 	Division             string            `json:"division"`
 	BillToEmailAddress   string            `json:"bill_to_email_address"`
+	CreatedAt            time.Time         `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	UpdatedAt            time.Time         `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	DeletedAt            *time.Time        `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 }
 
 type ShortenedGSAPCustomerMasterData struct {
-	MCMSID             int    `json:"mcms_id"`
-	PayerNumber        string `json:"payer_number"`
-	AgentAccountNumber string `json:"agent_account_number"`
-	ContactName_1      string `json:"contact_name_1"`
-	ContactName_2      string `json:"contact_name_2"`
-	ContactName_3      string `json:"contact_name_3"`
-	ContactName_4      string `json:"contact_name_4"`
+	MCMSID             int        `gorm:"primary_key;auto_increment" json:"mcms_id"`
+	PayerNumber        string     `json:"payer_number"`
+	AgentAccountNumber string     `json:"agent_account_number"`
+	ContactName_1      string     `json:"contact_name_1"`
+	ContactName_2      string     `json:"contact_name_2"`
+	ContactName_3      string     `json:"contact_name_3"`
+	ContactName_4      string     `json:"contact_name_4"`
+	CreatedAt          time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	UpdatedAt          time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	DeletedAt          *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 }
 
 type GSAPBusinessType struct {
-	ID   int    `gorm:"primary_key;auto_increment" json:"id"`
-	Name string `gorm:"not null;size:50" json:"name"`
+	ID        int        `gorm:"primary_key;auto_increment" json:"id"`
+	Name      string     `gorm:"not null;size:50" json:"name"`
+	CreatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	UpdatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	DeletedAt *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 }
 
 type GSAPIndustryClass struct {
-	ID   int    `gorm:"primary_key;auto_increment" json:"id"`
-	Name string `gorm:"not null;size:50" json:"name"`
+	ID        int        `gorm:"primary_key;auto_increment" json:"id"`
+	Name      string     `gorm:"not null;size:50" json:"name"`
+	CreatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	UpdatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	DeletedAt *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 }
 
 func (gsapCustomerMasterDatum *GSAPCustomerMasterData) FindDataByMCMSID(db *gorm.DB, MCMSID uint64) (*GSAPCustomerMasterData, error) {

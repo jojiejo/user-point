@@ -35,7 +35,7 @@ func (server *Server) GetInitialFees(c *gin.Context) {
 	log.Printf("End => Get Initial Fees")
 }
 
-func (server *Server) GetFee(c *gin.Context) {
+func (server *Server) GetInitialFee(c *gin.Context) {
 	log.Printf("Begin => Get Fee by ID")
 	feeID := c.Param("id")
 	convertedFeeID, err := strconv.ParseUint(feeID, 10, 64)
@@ -65,11 +65,11 @@ func (server *Server) GetFee(c *gin.Context) {
 		"response": fee,
 	})
 
-	log.Printf("Begin => Get Fee by ID")
+	log.Printf("End => Get Fee by ID")
 }
 
-func (server *Server) CreateAdHocFee(c *gin.Context) {
-	log.Printf("Begin => Create Ad Hoc Fee")
+func (server *Server) CreateFee(c *gin.Context) {
+	log.Printf("Begin => Create Fee")
 	errList = map[string]string{}
 
 	body, err := ioutil.ReadAll(c.Request.Body)
@@ -125,7 +125,7 @@ func (server *Server) CreateAdHocFee(c *gin.Context) {
 		return
 	}
 
-	feeCreated, err := fee.CreateAdHocFee(server.DB)
+	feeCreated, err := fee.CreateFee(server.DB)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
@@ -136,11 +136,11 @@ func (server *Server) CreateAdHocFee(c *gin.Context) {
 		"response": feeCreated,
 	})
 
-	log.Printf("End => Create Ad Hoc Fee")
+	log.Printf("End => Create Fee")
 }
 
-func (server *Server) UpdateAdHocFee(c *gin.Context) {
-	log.Printf("Begin => Update Ad Hoc Fee")
+func (server *Server) UpdateFee(c *gin.Context) {
+	log.Printf("Begin => Update Fee")
 
 	errList = map[string]string{}
 	feeID := c.Param("id")
@@ -199,7 +199,7 @@ func (server *Server) UpdateAdHocFee(c *gin.Context) {
 		return
 	}
 
-	feeUpdated, err := fee.UpdateAdHocFee(server.DB)
+	feeUpdated, err := fee.UpdateFee(server.DB)
 	if err != nil {
 		log.Printf(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -212,11 +212,11 @@ func (server *Server) UpdateAdHocFee(c *gin.Context) {
 		"response": feeUpdated,
 	})
 
-	log.Printf("End => Update Ad Hoc Fee")
+	log.Printf("End => Update Fee")
 }
 
-func (server *Server) DeactivateAdHocFee(c *gin.Context) {
-	log.Printf("Begin => Deactivate Ad Hoc Fee")
+func (server *Server) DeactivateFee(c *gin.Context) {
+	log.Printf("Begin => Deactivate Fee")
 
 	errList = map[string]string{}
 	feeID := c.Param("id")
@@ -278,7 +278,7 @@ func (server *Server) DeactivateAdHocFee(c *gin.Context) {
 
 	fee.ID = originalFee.ID
 	fee.Prepare()
-	_, err = fee.DeactivateAdHocFeeLater(server.DB)
+	_, err = fee.DeactivateFeeLater(server.DB)
 	if err != nil {
 		log.Printf(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -291,5 +291,5 @@ func (server *Server) DeactivateAdHocFee(c *gin.Context) {
 		"response": "Selected fee has been deactivated successfully.",
 	})
 
-	log.Printf("End => Deactivate Ad Hoc Fee")
+	log.Printf("End => Deactivate Fee")
 }

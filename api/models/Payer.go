@@ -43,8 +43,8 @@ type ShortenedPayer struct {
 	CreditLimit              float64                         `gorm:"not null;" json:"credit_limit"`
 	MembershipID             *int                            `gorm:"not null" json:"membership_id"`
 	MCMSID                   int                             `gorm:"not null;" json:"mcms_id"`
-	GSAPCustomerMasterData   ShortenedGSAPCustomerMasterData `json:"gsap_customer_master_data"`
-	LatestPayerStatus        HistoricalPayerStatus           `json:"latest_payer_status"`
+	GSAPCustomerMasterData   ShortenedGSAPCustomerMasterData `gorm:"foreignkey:MCMSID; association_foreignkey:MCMSID" json:"gsap_customer_master_data"`
+	LatestPayerStatus        HistoricalPayerStatus           `gorm:"foreignkey:CCID" json:"latest_payer_status"`
 	CreatedAt                time.Time                       `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt                *time.Time                      `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt                *time.Time                      `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
@@ -56,6 +56,8 @@ type HistoricalPayerStatus struct {
 	PayerStatusID int         `json:"payer_status_id"`
 	PayerStatus   PayerStatus `json:"payer_status"`
 	CreatedAt     time.Time   `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt     *time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	DeletedAt     *time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 }
 
 type PayerStatus struct {
