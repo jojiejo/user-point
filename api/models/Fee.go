@@ -136,6 +136,19 @@ func (fee *Fee) UpdateFee(db *gorm.DB) (*Fee, error) {
 	var err error
 	dateTimeNow := time.Now()
 
+	//Delete current status
+	db = db.Debug().Model(&FeeChargingCardStatus{}).Where("id = ?", fee.ID).Delete(&FeeChargingCardStatus{})
+	if db.Error != nil {
+		return &Fee{}, err
+	}
+
+	//Delete current dormant day
+	db = db.Debug().Model(&FeeDormantDay{}).Where("id = ?", fee.ID).Delete(&FeeDormantDay{})
+	if db.Error != nil {
+		return &Fee{}, err
+	}
+
+	//Update the data
 	err = db.Debug().Model(&Fee{}).Where("id = ?", fee.ID).Updates(
 		Fee{
 			Name:                  fee.Name,
