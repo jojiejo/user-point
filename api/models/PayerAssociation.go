@@ -21,9 +21,10 @@ func (pa *PayerAssociation) FindPayerAssociations(db *gorm.DB) (*[]PayerAssociat
 	return &pas, nil
 }
 
-func (payer *ShortenedPayer) FindPayerByPayerAssociationNumber(db *gorm.DB, payerAssociationNumber string) (*ShortenedPayer, error) {
+func (payer *ShortenedPayer) FindPayerByPayerAssociationNumber(db *gorm.DB, payerAssociationNumber string) (*[]ShortenedPayer, error) {
 	var err error
 
+	payers := []ShortenedPayer{}
 	if payerAssociationNumber == "0" {
 		err = db.Debug().Model(&ShortenedPayer{}).Unscoped().
 			Preload("GSAPCustomerMasterData").
@@ -31,10 +32,10 @@ func (payer *ShortenedPayer) FindPayerByPayerAssociationNumber(db *gorm.DB, paye
 			Preload("LatestPayerStatus.PayerStatus").
 			Joins("JOIN gsap_customer_master_data ON Corporate_Client_Relation.mcms_id = gsap_customer_master_data.mcms_id").
 			Where("gsap_customer_master_data.agent_account_number IS NULL").
-			Order("created_at desc").Find(&payer).Error
+			Order("created_at desc").Find(&payers).Error
 
 		if err != nil {
-			return &ShortenedPayer{}, err
+			return &[]ShortenedPayer{}, err
 		}
 	} else {
 		err = db.Debug().Model(&ShortenedPayer{}).Unscoped().
@@ -44,14 +45,14 @@ func (payer *ShortenedPayer) FindPayerByPayerAssociationNumber(db *gorm.DB, paye
 			Where("agent_account_number = ?", payerAssociationNumber).
 			Joins("JOIN gsap_customer_master_data ON Corporate_Client_Relation.mcms_id = gsap_customer_master_data.mcms_id").
 			Where("gsap_customer_master_data.agent_account_number = ?", payerAssociationNumber).
-			Order("created_at desc").Find(&payer).Error
+			Order("created_at desc").Find(&payers).Error
 
 		if err != nil {
-			return &ShortenedPayer{}, err
+			return &[]ShortenedPayer{}, err
 		}
 	}
 
-	return payer, nil
+	return &payers, nil
 }
 
 func (PayerAssociation) TableName() string {
