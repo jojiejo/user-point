@@ -35,12 +35,8 @@ type FeeChargingPeriod struct {
 }
 
 type FeeDormantDay struct {
-	ID         uint64     `gorm:"primary_key;auto_increment" json:"id"`
-	FeeID      uint64     `gorm:"not null;" json:"fee_id"`
-	DormantDay uint64     `gorm:"not null;" json:"dormant_day"`
-	CreatedAt  time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
-	UpdatedAt  time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
-	DeletedAt  *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	FeeID      uint64 `gorm:"not null;" json:"fee_id"`
+	DormantDay uint64 `gorm:"not null;" json:"dormant_day"`
 }
 
 type FeeType struct {
