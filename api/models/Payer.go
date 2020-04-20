@@ -17,7 +17,7 @@ type Payer struct {
 	PaperInvoice             *bool                  `gorm:"not null" json:"paper_invoice"`
 	UseInvoiceAddress        *bool                  `gorm:"not null" json:"use_invoice_address"`
 	ShowCreditLimit          *bool                  `gorm:"not null" json:"show_credit_limit"`
-	InvoiceProductionLevel   *bool                  `gorm:"not null" json:"invoice_production_level"`
+	InvoiceProductionLevel   uint64                 `gorm:"not null" json:"invoice_production_level"`
 	BankVirtualAccount       string                 `gorm:"not null;size:30" json:"bank_virtual_account"`
 	CreditLimit              float64                `gorm:"not null;" json:"credit_limit"`
 	MembershipID             *int                   `gorm:"not null" json:"membership_id"`
@@ -38,7 +38,7 @@ type ShortenedPayer struct {
 	PaperInvoice             *bool                           `gorm:"not null" json:"paper_invoice"`
 	UseInvoiceAddress        *bool                           `gorm:"not null" json:"use_invoice_address"`
 	ShowCreditLimit          *bool                           `gorm:"not null" json:"show_credit_limit"`
-	InvoiceProductionLevel   *bool                           `gorm:"not null" json:"invoice_production_level"`
+	InvoiceProductionLevel   uint64                          `gorm:"not null" json:"invoice_production_level"`
 	BankVirtualAccount       string                          `gorm:"not null;size:30" json:"bank_virtual_account"`
 	CreditLimit              float64                         `gorm:"not null;" json:"credit_limit"`
 	MembershipID             *int                            `gorm:"not null" json:"membership_id"`
@@ -80,7 +80,7 @@ func (payer *ShortenedPayer) ValidateInvoiceProduction() map[string]string {
 		errorMessages["required_show_credit_limit"] = err.Error()
 	}
 
-	if payer.InvoiceProductionLevel == nil {
+	if payer.InvoiceProductionLevel < 1 {
 		err = errors.New("Invoice production level field is required")
 		errorMessages["required_invoice_production_level"] = err.Error()
 	}

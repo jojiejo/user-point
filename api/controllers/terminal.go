@@ -413,6 +413,28 @@ func (server *Server) ReactivateTerminal(c *gin.Context) {
 		return
 	}
 
+	originalSite := models.Site{}
+	err = server.DB.Debug().Raw("EXEC spAPI_Site_GetLatestByID ?", originalTerminal.SiteID).Scan(&originalSite).Error
+	if err != nil {
+		errList["no_related_site"] = "No related site found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	dateTimeNow := time.Now()
+	//Check if the new deleted_at input is greater than the previous deleted_at
+	if originalSite.DeletedAt != nil {
+		if dateTimeNow.After(*originalSite.DeletedAt) {
+			errList["status_unprocessed"] = "The site related to this terminal has been deactivated"
+			c.JSON(http.StatusUnprocessableEntity, gin.H{
+				"error": errList,
+			})
+			return
+		}
+	}
+
 	originalTerminal.Prepare()
 	errorMessages := originalTerminal.Validate()
 	if len(errorMessages) > 0 {
