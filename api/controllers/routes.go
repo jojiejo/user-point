@@ -110,6 +110,7 @@ func (s *Server) initializeRoutes() {
 	{
 		branch.GET("/:id", s.GetBranch)
 		branch.GET("/:id/card-groups", s.GetCardGroupsByBranchID)
+		branch.PUT("/:id", s.UpdateCardGroupFlagInSelectedBranch)
 	}
 
 	//Card Group
@@ -135,5 +136,14 @@ func (s *Server) initializeRoutes() {
 		initialFee.POST("/", s.CreateFee)
 		initialFee.PUT("/:id", s.UpdateFee)
 		initialFee.DELETE("/:id", s.DeactivateFee)
+	}
+
+	//Charge Ad Hoc Fee
+	s.Router.GET("/charged-fees/ad-hoc", s.GetChargedAdHocFees)
+	adHocFee := s.Router.Group("/charged-fee/ad-hoc")
+	{
+		adHocFee.GET("/:id", s.GetChargedAdHocFee)
+		adHocFee.POST("/", s.ChargeAdHocFee)
+		//adHocFee.PUT("/")
 	}
 }

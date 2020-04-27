@@ -1,6 +1,11 @@
 package models
 
-import "github.com/jinzhu/gorm"
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/jinzhu/gorm"
+)
 
 type PayerAssociation struct {
 	Number string `gorm:"column:agent_account_number;not null;" json:"payer_association_number"`
@@ -34,6 +39,12 @@ func (payer *ShortenedPayer) FindPayerByPayerAssociationNumber(db *gorm.DB, paye
 			Where("gsap_customer_master_data.agent_account_number IS NULL").
 			Order("created_at desc").Find(&payers).Error
 
+		if len(payers) > 0 {
+			for i, _ := range payers {
+				payers[i].PaddedMCMSID = fmt.Sprintf("%010v", strconv.Itoa(payers[i].MCMSID))
+			}
+		}
+
 		if err != nil {
 			return &[]ShortenedPayer{}, err
 		}
@@ -46,6 +57,12 @@ func (payer *ShortenedPayer) FindPayerByPayerAssociationNumber(db *gorm.DB, paye
 			Joins("JOIN gsap_customer_master_data ON Corporate_Client_Relation.mcms_id = gsap_customer_master_data.mcms_id").
 			Where("gsap_customer_master_data.agent_account_number = ?", payerAssociationNumber).
 			Order("created_at desc").Find(&payers).Error
+
+		if len(payers) > 0 {
+			for i, _ := range payers {
+				payers[i].PaddedMCMSID = fmt.Sprintf("%010v", strconv.Itoa(payers[i].MCMSID))
+			}
+		}
 
 		if err != nil {
 			return &[]ShortenedPayer{}, err

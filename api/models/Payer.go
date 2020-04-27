@@ -2,7 +2,9 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"html"
+	"strconv"
 	"strings"
 	"time"
 
@@ -22,6 +24,7 @@ type Payer struct {
 	CreditLimit              float64                `gorm:"not null;" json:"credit_limit"`
 	MembershipID             *int                   `gorm:"not null" json:"membership_id"`
 	MCMSID                   int                    `gorm:"not null;" json:"mcms_id"`
+	PaddedMCMSID             string                 `json:"padded_mcms_id"`
 	GSAPCustomerMasterData   GSAPCustomerMasterData `json:"gsap_customer_master_data"`
 	LatestPayerStatus        HistoricalPayerStatus  `json:"latest_payer_status"`
 	Branch                   []ShortenedBranch      `json:"branch"`
@@ -43,6 +46,7 @@ type ShortenedPayer struct {
 	CreditLimit              float64                         `gorm:"not null;" json:"credit_limit"`
 	MembershipID             *int                            `gorm:"not null" json:"membership_id"`
 	MCMSID                   int                             `gorm:"not null;" json:"mcms_id"`
+	PaddedMCMSID             string                          `json:"padded_mcms_id"`
 	GSAPCustomerMasterData   ShortenedGSAPCustomerMasterData `gorm:"foreignkey:MCMSID; association_foreignkey:MCMSID" json:"gsap_customer_master_data"`
 	LatestPayerStatus        HistoricalPayerStatus           `gorm:"foreignkey:CCID" json:"latest_payer_status"`
 	CreatedAt                time.Time                       `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
@@ -157,7 +161,7 @@ func (payer *ShortenedPayer) FindAllPayers(db *gorm.DB) (*[]ShortenedPayer, erro
 				return &[]ShortenedPayer{}, err
 			}
 
-			latestStatusErr := db.Debug().Model(&HistoricalPayerStatus{}).Where("cc_id = ?", payers[i].CCID).Order("created_at desc").Find(&payers[i].LatestPayerStatus).Error
+			latestStatusErr := db.Debug().Model(&HistoricalPayerStatus{}).Where("cc_id = ?", payers[i].CCID).Order("id asc").Find(&payers[i].LatestPayerStatus).Error
 			if latestStatusErr != nil {
 				return &[]ShortenedPayer{}, err
 			}
@@ -166,6 +170,8 @@ func (payer *ShortenedPayer) FindAllPayers(db *gorm.DB) (*[]ShortenedPayer, erro
 			if statusErr != nil {
 				return &[]ShortenedPayer{}, err
 			}
+
+			payers[i].PaddedMCMSID = fmt.Sprintf("%010v", strconv.Itoa(payers[i].MCMSID))
 		}
 	}
 
@@ -184,7 +190,7 @@ func (payer *Payer) FindPayerByCCID(db *gorm.DB, CCID uint64) (*Payer, error) {
 		return &Payer{}, err
 	}
 
-	latestStatusErr := db.Debug().Model(&HistoricalPayerStatus{}).Where("cc_id = ?", payer.CCID).Order("created_at desc").Find(&payer.LatestPayerStatus).Error
+	latestStatusErr := db.Debug().Model(&HistoricalPayerStatus{}).Where("cc_id = ?", payer.CCID).Order("id asc").Find(&payer.LatestPayerStatus).Error
 	if latestStatusErr != nil {
 		return &Payer{}, err
 	}
@@ -198,6 +204,8 @@ func (payer *Payer) FindPayerByCCID(db *gorm.DB, CCID uint64) (*Payer, error) {
 	if branchErr != nil {
 		return &Payer{}, err
 	}
+
+	payer.PaddedMCMSID = fmt.Sprintf("%010v", strconv.Itoa(payer.MCMSID))
 
 	return payer, nil
 }
@@ -248,7 +256,16 @@ func (payer *ShortenedPayer) UpdateCredit(db *gorm.DB) (*ShortenedPayer, error) 
 			BankVirtualAccount: payer.BankVirtualAccount,
 			UpdatedAt:          &dateTimeNow,
 		}).Error
+	if err != nil {
+		return &ShortenedPayer{}, err
+	}
 
+	customStatus := HistoricalPayerStatus{
+		PayerStatusID: payer.LatestPayerStatus.PayerStatusID,
+		CCID:          payer.CCID,
+		CreatedAt:     dateTimeNow,
+	}
+	err = db.Debug().Model(&HistoricalPayerStatus{}).Create(&customStatus).Error
 	if err != nil {
 		return &ShortenedPayer{}, err
 	}

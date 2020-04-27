@@ -9,6 +9,12 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+type ShortenedFee struct {
+	ID           uint64  `gorm:"primary_key;auto_increment" json:"id"`
+	Name         string  `gorm:"not null;size:50" json:"name"`
+	DefaultValue float64 `gorm:"not null;" json:"default_value"`
+}
+
 type Fee struct {
 	ID                    uint64            `gorm:"primary_key;auto_increment" json:"id"`
 	Name                  string            `gorm:"not null;size:50" json:"name"`
@@ -58,7 +64,7 @@ func (fee *Fee) Validate() map[string]string {
 
 	if fee.UnitID < 1 {
 		err = errors.New("Unit field is required")
-		errorMessages["site"] = err.Error()
+		errorMessages["unit"] = err.Error()
 	}
 
 	return errorMessages
@@ -169,6 +175,10 @@ func (fee *Fee) DeactivateFeeLater(db *gorm.DB) (int64, error) {
 	}
 
 	return 1, nil
+}
+
+func (ShortenedFee) TableName() string {
+	return "fee"
 }
 
 func (Fee) TableName() string {

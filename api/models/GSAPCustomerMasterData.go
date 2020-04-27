@@ -13,9 +13,9 @@ type GSAPCustomerMasterData struct {
 	BranchAccountNumber  string            `json:"branch_account_number"`
 	AgentAccountNumber   string            `json:"agent_account_number"`
 	SalesOrganization    string            `json:"sales_organization"`
-	IndustryClassID      int               `json:"industry_class_id"`
+	IndustryClassID      string            `json:"industry_class_id"`
 	IndustryClass        GSAPIndustryClass `json:"industry_class"`
-	BusinessTypeID       int               `json:"business_type_id"`
+	BusinessTypeID       string            `json:"business_type_id"`
 	BusinessType         GSAPBusinessType  `json:"business_type"`
 	ContactName_1        string            `json:"contact_name_1"`
 	ContactName_2        string            `json:"contact_name_2"`
@@ -29,6 +29,7 @@ type GSAPCustomerMasterData struct {
 	ContactSecondAddress string            `json:"contact_second_address"`
 	ContactThirdAddress  string            `json:"contact_third_address"`
 	WorkPhoneNumber      string            `json:"work_phone_number"`
+	MobilePhoneNumber    string            `json:"mobile_phone_number"`
 	FaxNumber            string            `json:"fax_number"`
 	CompanyRegNumber     string            `json:"company_reg_number"`
 	VATRegNumber         string            `json:"vat_reg_number"`
