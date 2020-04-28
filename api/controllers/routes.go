@@ -17,6 +17,9 @@ func (s *Server) initializeRoutes() {
 	//Card Status
 	s.Router.GET("/card-status", s.GetAllCardStatus)
 
+	//Unit
+	s.Router.GET("/units", s.GetAllUnits)
+
 	//Province
 	s.Router.GET("/provinces", s.GetProvinces)
 	s.Router.GET("/province/:id", s.GetProvince)
@@ -103,6 +106,7 @@ func (s *Server) initializeRoutes() {
 		payer.PATCH("/:id/configuration", s.UpdateConfiguration)
 		payer.PATCH("/:id/credit", s.UpdateCredit)
 		payer.PATCH("/:id/invoice-production", s.UpdateInvoiceProduction)
+		payer.GET("/:id/charged-fees/automated", s.GetChargedAutomatedFeesOnSelectedAccount)
 	}
 
 	//Branch
@@ -145,5 +149,12 @@ func (s *Server) initializeRoutes() {
 		adHocFee.GET("/:id", s.GetChargedAdHocFee)
 		adHocFee.POST("/", s.ChargeAdHocFee)
 		//adHocFee.PUT("/")
+	}
+
+	//Charge Automated Fee
+	automatedFee := s.Router.Group("/charged-fee/automated")
+	{
+		automatedFee.GET("/:id", s.GetChargedAutomatedFee)
+		automatedFee.PUT("/:id", s.UpdateAutomatedFee)
 	}
 }

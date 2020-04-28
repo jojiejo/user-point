@@ -3,7 +3,7 @@ package models
 import "github.com/jinzhu/gorm"
 
 type CardStatus struct {
-	ID   int    `gorm:"primary_key;auto_increment" json:"id"`
+	ID   int    `gorm:"primary_key:true;auto_increment" json:"id"`
 	Name string `gorm:"not null;" json:"name"`
 }
 
