@@ -59,17 +59,18 @@ type GSAPCustomerMasterData struct {
 }
 
 type ShortenedGSAPCustomerMasterData struct {
-	MCMSID             int        `gorm:"primary_key;auto_increment" json:"mcms_id"`
-	PayerNumber        string     `json:"payer_number"`
-	AgentAccountNumber string     `json:"agent_account_number"`
-	ContactName_1      string     `json:"contact_name_1"`
-	ContactName_2      string     `json:"contact_name_2"`
-	ContactName_3      string     `json:"contact_name_3"`
-	ContactName_4      string     `json:"contact_name_4"`
-	AccountClass       string     `json:"account_class"`
-	CreatedAt          time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
-	UpdatedAt          time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
-	DeletedAt          *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	MCMSID              int        `gorm:"primary_key;auto_increment" json:"mcms_id"`
+	PayerNumber         string     `json:"payer_number"`
+	AgentAccountNumber  string     `json:"agent_account_number"`
+	BranchAccountNumber string     `json:"branch_account_number"`
+	ContactName_1       string     `json:"contact_name_1"`
+	ContactName_2       string     `json:"contact_name_2"`
+	ContactName_3       string     `json:"contact_name_3"`
+	ContactName_4       string     `json:"contact_name_4"`
+	AccountClass        string     `json:"account_class"`
+	CreatedAt           time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	UpdatedAt           time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	DeletedAt           *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 }
 
 type GSAPBusinessType struct {

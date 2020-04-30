@@ -62,6 +62,9 @@ func (caf *ChargedAutomatedFee) FindChargedAutomatedFeeByCCID(db *gorm.DB, CCID 
 	cafs := []ChargedAutomatedFee{}
 	err = db.Debug().Model(&ChargedAutomatedFee{}).Unscoped().
 		Preload("Fee").
+		Preload("FeeChargingCardStatus").
+		Preload("ChargingPeriod").
+		Preload("FeeDormantDay").
 		Where("cc_id = ?", CCID).
 		Order("created_at desc").
 		Find(&cafs).Error
@@ -77,6 +80,9 @@ func (caf *ChargedAutomatedFee) FindChargedAutomatedFeeByID(db *gorm.DB, relatio
 	var err error
 	err = db.Debug().Model(&ChargedAutomatedFee{}).Unscoped().
 		Preload("Fee").
+		Preload("FeeChargingCardStatus").
+		Preload("ChargingPeriod").
+		Preload("FeeDormantDay").
 		Where("id = ?", relationID).
 		Order("created_at desc").
 		Take(&caf).Error
