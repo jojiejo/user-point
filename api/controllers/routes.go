@@ -148,7 +148,8 @@ func (s *Server) initializeRoutes() {
 	{
 		adHocFee.GET("/:id", s.GetChargedAdHocFee)
 		adHocFee.POST("/", s.ChargeAdHocFee)
-		//adHocFee.PUT("/")
+		adHocFee.POST("/bulk-check", s.CheckBulkChargeAdHocFee)
+		adHocFee.POST("/bulk-charge", s.BulkChargeAdHocFee)
 	}
 
 	//Charge Automated Fee

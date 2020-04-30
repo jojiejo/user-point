@@ -117,3 +117,111 @@ func (server *Server) ChargeAdHocFee(c *gin.Context) {
 
 	log.Printf("End => Create Fee")
 }
+
+func (server *Server) CheckBulkChargeAdHocFee(c *gin.Context) {
+	log.Printf("Begin => Check Bulk Charge Ad Hoc Fee")
+	errList = map[string]string{}
+
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_body"] = "Unable to get request"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	bulkChargeAdHocFee := models.BulkChargeAdHocFee{}
+	err = json.Unmarshal(body, &bulkChargeAdHocFee)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	bulkChargeAdHocFee.Prepare()
+	errorMessages := bulkChargeAdHocFee.Validate()
+	if len(errorMessages) > 0 {
+		log.Println(errorMessages)
+		errList = errorMessages
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	checkedFieldBulkUpload, errorMessages := bulkChargeAdHocFee.BulkCheckAdHocFee(server.DB)
+	if len(errorMessages) > 0 {
+		log.Println(errorMessages)
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errorMessages,
+		})
+		return
+	} else {
+		stringifiedCheckedFieldBulkUpload, _ := json.Marshal(checkedFieldBulkUpload)
+		log.Printf("Get Bulk Uploaded Field : ", string(stringifiedCheckedFieldBulkUpload))
+		c.JSON(http.StatusOK, gin.H{
+			"response": checkedFieldBulkUpload,
+		})
+	}
+
+	log.Printf("End => Check Bulk Charge Ad Hoc Fee")
+}
+
+func (server *Server) BulkChargeAdHocFee(c *gin.Context) {
+	log.Printf("Begin => Charge Ad Hoc Fee")
+	errList = map[string]string{}
+
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_body"] = "Unable to get request"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	bulkChargeAdHocFee := models.BulkChargeAdHocFee{}
+	err = json.Unmarshal(body, &bulkChargeAdHocFee)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	bulkChargeAdHocFee.Prepare()
+	errorMessages := bulkChargeAdHocFee.ChargeValidate()
+	if len(errorMessages) > 0 {
+		log.Println(errorMessages)
+		errList = errorMessages
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	fieldBulkCharge, errorMessages := bulkChargeAdHocFee.BulkChargeAdHocFee(server.DB)
+	if len(errorMessages) > 0 {
+		log.Println(errorMessages)
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errorMessages,
+		})
+		return
+	} else {
+		stringifiedFieldBulkCharge, _ := json.Marshal(fieldBulkCharge)
+		log.Printf("Get Bulk Charge Ad Hoc Fee : ", string(stringifiedFieldBulkCharge))
+		c.JSON(http.StatusOK, gin.H{
+			"response": fieldBulkCharge,
+		})
+	}
+
+	log.Printf("End => Bulk Charge Ad Hoc Fee")
+}

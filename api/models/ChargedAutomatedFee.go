@@ -2,7 +2,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -14,8 +13,6 @@ type ChargedAutomatedFee struct {
 	FeeID                 uint64                        `gorm:"not null;" json:"fee_id"`
 	Fee                   ShortenedFee                  `json:"fee"`
 	Value                 float32                       `gorm:"not null;" json:"value"`
-	UnitID                uint64                        `gorm:"not null;" json:"unit_id"`
-	Unit                  Unit                          `json:"unit"`
 	FeeDormantDay         ChargedAutomatedFeeDormantDay `gorm:"foreignkey:fee_payer_id;association_foreignkey:id;" json:"fee_dormant_day"`
 	FeeChargingCardStatus []CardStatus                  `gorm:"many2many:fee_payer_card_status;association_autoupdate:false;jointable_foreignkey:fee_payer_id;association_jointable_foreignkey:fee_payer_id;association_jointable_foreignkey:card_status_id" json:"fee_charging_card_status"`
 	ChargingPeriodID      int                           `json:"charging_period_id"`
@@ -64,7 +61,6 @@ func (caf *ChargedAutomatedFee) FindChargedAutomatedFeeByCCID(db *gorm.DB, CCID 
 	var err error
 	cafs := []ChargedAutomatedFee{}
 	err = db.Debug().Model(&ChargedAutomatedFee{}).Unscoped().
-		Preload("Unit").
 		Preload("Fee").
 		Where("cc_id = ?", CCID).
 		Order("created_at desc").
@@ -80,7 +76,6 @@ func (caf *ChargedAutomatedFee) FindChargedAutomatedFeeByCCID(db *gorm.DB, CCID 
 func (caf *ChargedAutomatedFee) FindChargedAutomatedFeeByID(db *gorm.DB, relationID uint64) (*ChargedAutomatedFee, error) {
 	var err error
 	err = db.Debug().Model(&ChargedAutomatedFee{}).Unscoped().
-		Preload("Unit").
 		Preload("Fee").
 		Where("id = ?", relationID).
 		Order("created_at desc").
@@ -114,7 +109,6 @@ func (caf *ChargedAutomatedFee) UpdateAutomatedFee(db *gorm.DB, relationID uint6
 	}
 
 	//Update card status
-	fmt.Println("hehe : ", caf.FeeChargingCardStatus)
 	err = db.Debug().Model(&caf).Where("id = ?", caf.ID).Association("FeeChargingCardStatus").Replace(caf.FeeChargingCardStatus).Error
 	if err != nil {
 		return &ChargedAutomatedFee{}, err
