@@ -62,10 +62,43 @@ func (server *Server) GetInitialFee(c *gin.Context) {
 	stringifiedReceivedFee, _ := json.Marshal(feeReceived)
 	log.Printf("Get Fees : ", string(stringifiedReceivedFee))
 	c.JSON(http.StatusOK, gin.H{
-		"response": fee,
+		"response": feeReceived,
 	})
 
 	log.Printf("End => Get Fee by ID")
+}
+
+func (server *Server) GetInitialFeeByFeeType(c *gin.Context) {
+	log.Printf("Begin => Get Fee by Fee Type")
+	feeTypeID := c.Param("id")
+	convertedFeeTypeID, err := strconv.ParseUint(feeTypeID, 10, 64)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	fee := models.ShortenedFee{}
+	feeReceived, err := fee.FindFeeByTypeID(server.DB, convertedFeeTypeID)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["no_fee"] = "No fee found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	stringifiedReceivedFee, _ := json.Marshal(feeReceived)
+	log.Printf("Get Fees : ", string(stringifiedReceivedFee))
+	c.JSON(http.StatusOK, gin.H{
+		"response": feeReceived,
+	})
+
+	log.Printf("End => Get Fee by Fee Type")
 }
 
 func (server *Server) CreateFee(c *gin.Context) {

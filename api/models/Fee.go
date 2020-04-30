@@ -108,6 +108,21 @@ func (fee *Fee) FindFeeByID(db *gorm.DB, feeID uint64) (*Fee, error) {
 	return fee, nil
 }
 
+func (fee *ShortenedFee) FindFeeByTypeID(db *gorm.DB, feeTypeID uint64) (*[]ShortenedFee, error) {
+	var err error
+	fees := []ShortenedFee{}
+	err = db.Debug().Model(&ShortenedFee{}).Unscoped().
+		Where("fee_type_id = ?", feeTypeID).
+		Order("created_at desc").
+		Find(&fees).Error
+
+	if err != nil {
+		return &[]ShortenedFee{}, err
+	}
+
+	return &fees, nil
+}
+
 func (fee *Fee) CreateFee(db *gorm.DB) (*Fee, error) {
 	var err error
 	err = db.Debug().Model(&Fee{}).Create(&fee).Error

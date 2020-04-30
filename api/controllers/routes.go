@@ -134,6 +134,7 @@ func (s *Server) initializeRoutes() {
 
 	//Fee
 	s.Router.GET("/initial-fees", s.GetInitialFees)
+	s.Router.GET("/initial-fees/type/:id", s.GetInitialFeeByFeeType)
 	initialFee := s.Router.Group("/initial-fee")
 	{
 		initialFee.GET("/:id", s.GetInitialFee)
