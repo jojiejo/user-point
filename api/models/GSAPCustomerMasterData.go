@@ -66,6 +66,7 @@ type ShortenedGSAPCustomerMasterData struct {
 	ContactName_2      string     `json:"contact_name_2"`
 	ContactName_3      string     `json:"contact_name_3"`
 	ContactName_4      string     `json:"contact_name_4"`
+	AccountClass       string     `json:"account_class"`
 	CreatedAt          time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 	UpdatedAt          time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 	DeletedAt          *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
