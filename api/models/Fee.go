@@ -13,6 +13,8 @@ type ShortenedFee struct {
 	ID           uint64  `gorm:"primary_key;auto_increment" json:"id"`
 	Name         string  `gorm:"not null;size:50" json:"name"`
 	DefaultValue float64 `gorm:"not null;" json:"default_value"`
+	UnitID       int     `json:"unit_id"`
+	Unit         Unit    `json:"unit"`
 }
 
 type Fee struct {
@@ -24,7 +26,7 @@ type Fee struct {
 	FeeTypeID             int               `gorm:"not null" json:"fee_type_id"`
 	FeeType               FeeType           `json:"fee_type"`
 	FeeChargingCardStatus []CardStatus      `gorm:"many2many:fee_card_status;association_autoupdate:false;association_jointable_foreignkey:fee_id;association_jointable_foreignkey:card_status_id" json:"fee_charging_card_status"`
-	FeeDormantDay         FeeDormantDay     `gorm:"foreignkey:FeeID;association_foreignkey:ID" json:"fee_dormant_day"`
+	DormantDay            *uint64           `json:"dormant_day"`
 	ChargingPeriodID      int               `json:"charging_period_id"`
 	ChargingPeriod        FeeChargingPeriod `json:"charging_period"`
 	CreatedAt             time.Time         `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
@@ -38,11 +40,6 @@ type FeeChargingPeriod struct {
 	CreatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 	UpdatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 	DeletedAt *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
-}
-
-type FeeDormantDay struct {
-	FeeID      uint64 `gorm:"primary_key;not null;" json:"fee_id"`
-	DormantDay uint64 `gorm:"not null;" json:"dormant_day"`
 }
 
 type FeeType struct {
@@ -78,7 +75,6 @@ func (fee *Fee) FindIntialFees(db *gorm.DB) (*[]Fee, error) {
 		Preload("FeeType").
 		Preload("FeeChargingCardStatus").
 		Preload("ChargingPeriod").
-		Preload("FeeDormantDay").
 		Order("id, created_at desc").
 		Find(&fees).Error
 
@@ -96,7 +92,6 @@ func (fee *Fee) FindFeeByID(db *gorm.DB, feeID uint64) (*Fee, error) {
 		Preload("FeeType").
 		Preload("FeeChargingCardStatus").
 		Preload("ChargingPeriod").
-		Preload("FeeDormantDay").
 		Where("id = ?", feeID).
 		Order("created_at desc").
 		Take(&fee).Error
@@ -144,21 +139,26 @@ func (fee *Fee) UpdateFee(db *gorm.DB) (*Fee, error) {
 	dateTimeNow := time.Now()
 
 	//Update the data
-	err = db.Debug().Model(&Fee{}).Where("id = ?", fee.ID).Updates(
-		Fee{
-			Name:             fee.Name,
-			DefaultValue:     fee.DefaultValue,
-			UnitID:           fee.UnitID,
-			FeeTypeID:        fee.FeeTypeID,
-			ChargingPeriodID: fee.ChargingPeriodID,
-			UpdatedAt:        dateTimeNow,
+	/*err = db.Debug().Model(&Fee{}).Where("id = ?", fee.ID).Updates(
+	Fee{
+		Name:             fee.Name,
+		DefaultValue:     fee.DefaultValue,
+		UnitID:           fee.UnitID,
+		FeeTypeID:        fee.FeeTypeID,
+		ChargingPeriodID: fee.ChargingPeriodID,
+		UpdatedAt:        dateTimeNow,
+	}).Error*/
+	err = db.Debug().Model(&fee).Updates(
+		map[string]interface{}{
+			"name":               fee.Name,
+			"default_value":      fee.DefaultValue,
+			"unit_id":            fee.UnitID,
+			"fee_type_id":        fee.FeeTypeID,
+			"charging_period_id": fee.ChargingPeriodID,
+			"dormant_day":        fee.DormantDay,
+			"updated_at":         dateTimeNow,
 		}).Error
-	if err != nil {
-		return &Fee{}, err
-	}
 
-	//Update dormant day
-	err = db.Debug().Model(&fee).Where("id = ?", fee.ID).Association("FeeDormantDay").Append(fee.FeeDormantDay).Error
 	if err != nil {
 		return &Fee{}, err
 	}
@@ -206,8 +206,4 @@ func (FeeType) TableName() string {
 
 func (FeeChargingPeriod) TableName() string {
 	return "fee_charging_period"
-}
-
-func (FeeDormantDay) TableName() string {
-	return "fee_dormant_day"
 }

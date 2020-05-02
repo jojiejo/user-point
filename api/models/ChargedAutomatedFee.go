@@ -8,19 +8,20 @@ import (
 )
 
 type ChargedAutomatedFee struct {
-	ID                    uint64                        `sql:"index" gorm:"primary_key;auto_increment;" json:"id"`
-	CCID                  uint64                        `gorm:"not null" json:"cc_id"`
-	FeeID                 uint64                        `gorm:"not null;" json:"fee_id"`
-	Fee                   ShortenedFee                  `json:"fee"`
-	Value                 float32                       `gorm:"not null;" json:"value"`
-	FeeDormantDay         ChargedAutomatedFeeDormantDay `gorm:"foreignkey:fee_payer_id;association_foreignkey:id;" json:"fee_dormant_day"`
-	FeeChargingCardStatus []CardStatus                  `gorm:"many2many:fee_payer_card_status;association_autoupdate:false;jointable_foreignkey:fee_payer_id;association_jointable_foreignkey:fee_payer_id;association_jointable_foreignkey:card_status_id" json:"fee_charging_card_status"`
-	ChargingPeriodID      int                           `json:"charging_period_id"`
-	ChargingPeriod        FeeChargingPeriod             `json:"charging_period"`
-	WaivedAt              *time.Time                    `gorm:"default:CURRENT_TIMESTAMP" json:"waived_at"`
-	CreatedAt             time.Time                     `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt             time.Time                     `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
-	DeletedAt             *time.Time                    `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
+	ID                    uint64            `sql:"index" gorm:"primary_key;auto_increment;" json:"id"`
+	CCID                  uint64            `gorm:"not null" json:"cc_id"`
+	FeeID                 uint64            `gorm:"not null;" json:"fee_id"`
+	Fee                   ShortenedFee      `json:"fee"`
+	Value                 float32           `gorm:"not null;" json:"value"`
+	DormantDay            *uint64           `json:"dormant_day"`
+	FeeChargingCardStatus []CardStatus      `gorm:"many2many:fee_payer_card_status;association_autoupdate:false;jointable_foreignkey:fee_payer_id;association_jointable_foreignkey:fee_payer_id;association_jointable_foreignkey:card_status_id" json:"fee_charging_card_status"`
+	ChargingPeriodID      int               `json:"charging_period_id"`
+	ChargingPeriod        FeeChargingPeriod `json:"charging_period"`
+	WaivedAt              *time.Time        `gorm:"default:CURRENT_TIMESTAMP" json:"waived_at"`
+	StartedAt             time.Time         `gorm:"default:CURRENT_TIMESTAMP" json:"started_at"`
+	CreatedAt             time.Time         `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt             time.Time         `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	DeletedAt             *time.Time        `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
 }
 
 type ChargedAutomatedFeeChargingPeriod struct {
@@ -62,9 +63,9 @@ func (caf *ChargedAutomatedFee) FindChargedAutomatedFeeByCCID(db *gorm.DB, CCID 
 	cafs := []ChargedAutomatedFee{}
 	err = db.Debug().Model(&ChargedAutomatedFee{}).Unscoped().
 		Preload("Fee").
+		Preload("Fee.Unit").
 		Preload("FeeChargingCardStatus").
 		Preload("ChargingPeriod").
-		Preload("FeeDormantDay").
 		Where("cc_id = ?", CCID).
 		Order("created_at desc").
 		Find(&cafs).Error
@@ -80,9 +81,9 @@ func (caf *ChargedAutomatedFee) FindChargedAutomatedFeeByID(db *gorm.DB, relatio
 	var err error
 	err = db.Debug().Model(&ChargedAutomatedFee{}).Unscoped().
 		Preload("Fee").
+		Preload("Fee.Unit").
 		Preload("FeeChargingCardStatus").
 		Preload("ChargingPeriod").
-		Preload("FeeDormantDay").
 		Where("id = ?", relationID).
 		Order("created_at desc").
 		Take(&caf).Error
@@ -97,19 +98,25 @@ func (caf *ChargedAutomatedFee) FindChargedAutomatedFeeByID(db *gorm.DB, relatio
 func (caf *ChargedAutomatedFee) UpdateAutomatedFee(db *gorm.DB, relationID uint64) (*ChargedAutomatedFee, error) {
 	var err error
 	dateTimeNow := time.Now()
-	err = db.Debug().Model(&ChargedAutomatedFee{}).Where("id = ?", relationID).Updates(
-		ChargedAutomatedFee{
-			Value:            caf.Value,
-			ChargingPeriodID: caf.ChargingPeriodID,
-			UpdatedAt:        dateTimeNow,
+	/*err = db.Debug().Model(&ChargedAutomatedFee{}).Where("id = ?", relationID).Updates(
+	ChargedAutomatedFee{
+		Value:            caf.Value,
+		ChargingPeriodID: caf.ChargingPeriodID,
+		DormantDay:       gorm.Expr("NULL"),
+		WaivedAt:         caf.WaivedAt,
+		StartedAt:        caf.StartedAt,
+		UpdatedAt:        dateTimeNow,
+	}).Error*/
+	err = db.Debug().Model(&caf).Updates(
+		map[string]interface{}{
+			"value":              caf.Value,
+			"waived_at":          caf.WaivedAt,
+			"charging_period_id": caf.ChargingPeriodID,
+			"dormant_day":        caf.DormantDay,
+			"started_at":         caf.StartedAt,
+			"updated_at":         dateTimeNow,
 		}).Error
 
-	if err != nil {
-		return &ChargedAutomatedFee{}, err
-	}
-
-	//Update dormant day
-	err = db.Debug().Model(&caf).Where("id = ?", caf.ID).Association("FeeDormantDay").Append(caf.FeeDormantDay).Error
 	if err != nil {
 		return &ChargedAutomatedFee{}, err
 	}
@@ -135,8 +142,4 @@ func (ChargedAutomatedFee) TableName() string {
 
 func (ChargedAutomatedFeeChargingPeriod) TableName() string {
 	return "fee_payer_charging_period"
-}
-
-func (ChargedAutomatedFeeDormantDay) TableName() string {
-	return "fee_payer_dormant_day"
 }
