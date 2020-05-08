@@ -11,16 +11,18 @@ import (
 
 type ShortenedFee struct {
 	ID           uint64  `gorm:"primary_key;auto_increment" json:"id"`
+	Code         string  `gorm:"not null;size:50" json:"code"`
 	Name         string  `gorm:"not null;size:50" json:"name"`
-	DefaultValue float64 `gorm:"not null;" json:"default_value"`
+	DefaultValue float32 `gorm:"not null;" json:"default_value"`
 	UnitID       int     `json:"unit_id"`
 	Unit         Unit    `json:"unit"`
 }
 
 type Fee struct {
 	ID                    uint64            `gorm:"primary_key;auto_increment" json:"id"`
+	Code                  string            `gorm:"not null;size:50" json:"code"`
 	Name                  string            `gorm:"not null;size:50" json:"name"`
-	DefaultValue          float64           `gorm:"not null;" json:"default_value"`
+	DefaultValue          float32           `gorm:"not null;" json:"default_value"`
 	UnitID                int               `json:"unit_id"`
 	Unit                  Unit              `json:"unit"`
 	FeeTypeID             int               `gorm:"not null" json:"fee_type_id"`

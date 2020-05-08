@@ -12,7 +12,7 @@ import (
 )
 
 type Payer struct {
-	CCID                     int                    `gorm:"primary_key;auto_increment" json:"cc_id"`
+	CCID                     uint64                 `gorm:"primary_key;auto_increment" json:"cc_id"`
 	ContractNumber           string                 `gorm:"not null" json:"contract_number"`
 	Alias                    string                 `gorm:"not null" json:"alias"`
 	TelematicSubscriptionFee *bool                  `gorm:"not null" json:"telematic_subscription_fee"`
@@ -34,7 +34,7 @@ type Payer struct {
 }
 
 type ShortenedPayer struct {
-	CCID                     int                             `gorm:"primary_key;auto_increment" json:"cc_id"`
+	CCID                     uint64                          `gorm:"primary_key;auto_increment" json:"cc_id"`
 	ContractNumber           string                          `gorm:"not null" json:"contract_number"`
 	Alias                    string                          `gorm:"not null" json:"alias"`
 	TelematicSubscriptionFee *bool                           `gorm:"not null" json:"telematic_subscription_fee"`
@@ -56,7 +56,7 @@ type ShortenedPayer struct {
 
 type HistoricalPayerStatus struct {
 	ID            int         `json:"id"`
-	CCID          int         `json:"cc_id"`
+	CCID          uint64      `json:"cc_id"`
 	PayerStatusID int         `json:"payer_status_id"`
 	PayerStatus   PayerStatus `json:"payer_status"`
 	CreatedAt     time.Time   `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
@@ -75,48 +75,9 @@ func (payer *ShortenedPayer) Prepare() {
 	payer.BankVirtualAccount = html.EscapeString(strings.TrimSpace(payer.BankVirtualAccount))
 }
 
-func (payer *ShortenedPayer) ValidateInvoiceProduction() map[string]string {
-	var err error
-	var errorMessages = make(map[string]string)
-
-	if payer.ShowCreditLimit == nil {
-		err = errors.New("Show credit limit field is required")
-		errorMessages["required_show_credit_limit"] = err.Error()
-	}
-
-	if payer.InvoiceProductionLevel < 1 {
-		err = errors.New("Invoice production level field is required")
-		errorMessages["required_invoice_production_level"] = err.Error()
-	}
-
-	return errorMessages
-}
-
-func (payer *ShortenedPayer) ValidateCredit() map[string]string {
-	var err error
-	var errorMessages = make(map[string]string)
-
-	if payer.BankVirtualAccount == "" {
-		err = errors.New("Bank virtual account field is required")
-		errorMessages["required_bank_virtual_account"] = err.Error()
-	}
-
-	if payer.CreditLimit < 0 {
-		err = errors.New("Credit limit field is required")
-		errorMessages["required_credit_limit"] = err.Error()
-	}
-
-	return errorMessages
-}
-
 func (payer *ShortenedPayer) ValidateConfiguration() map[string]string {
 	var err error
 	var errorMessages = make(map[string]string)
-
-	if payer.ContractNumber == "" {
-		err = errors.New("Contract number field is required")
-		errorMessages["required_contract_number"] = err.Error()
-	}
 
 	if payer.Alias == "" {
 		err = errors.New("Alias field is required")
@@ -141,6 +102,21 @@ func (payer *ShortenedPayer) ValidateConfiguration() map[string]string {
 	if payer.UseInvoiceAddress == nil {
 		err = errors.New("Use invoice address field is required")
 		errorMessages["required_use_invoice_address"] = err.Error()
+	}
+
+	if payer.ShowCreditLimit == nil {
+		err = errors.New("Show credit limit field is required")
+		errorMessages["required_show_credit_limit"] = err.Error()
+	}
+
+	if payer.InvoiceProductionLevel < 1 {
+		err = errors.New("Invoice production level field is required")
+		errorMessages["required_invoice_production_level"] = err.Error()
+	}
+
+	if payer.CreditLimit < 0 {
+		err = errors.New("Credit limit field is required")
+		errorMessages["required_credit_limit"] = err.Error()
 	}
 
 	return errorMessages
@@ -218,44 +194,15 @@ func (payer *ShortenedPayer) UpdatePayerConfiguration(db *gorm.DB) (*ShortenedPa
 			ContractNumber:           payer.ContractNumber,
 			MembershipID:             payer.MembershipID,
 			TelematicSubscriptionFee: payer.TelematicSubscriptionFee,
+			Alias:                    payer.Alias,
 			PaperInvoice:             payer.PaperInvoice,
+			ShowCreditLimit:          payer.ShowCreditLimit,
 			InvoiceProductionLevel:   payer.InvoiceProductionLevel,
+			CreditLimit:              payer.CreditLimit,
+			BankVirtualAccount:       payer.BankVirtualAccount,
 			UpdatedAt:                &dateTimeNow,
 		}).Error
 
-	if err != nil {
-		return &ShortenedPayer{}, err
-	}
-
-	return payer, nil
-}
-
-func (payer *ShortenedPayer) UpdateInvoiceProduction(db *gorm.DB) (*ShortenedPayer, error) {
-	var err error
-	dateTimeNow := time.Now()
-	err = db.Debug().Model(&ShortenedPayer{}).Where("cc_id = ?", payer.CCID).Updates(
-		Payer{
-			ShowCreditLimit:        payer.ShowCreditLimit,
-			InvoiceProductionLevel: payer.InvoiceProductionLevel,
-			UpdatedAt:              &dateTimeNow,
-		}).Error
-
-	if err != nil {
-		return &ShortenedPayer{}, err
-	}
-
-	return payer, nil
-}
-
-func (payer *ShortenedPayer) UpdateCredit(db *gorm.DB) (*ShortenedPayer, error) {
-	var err error
-	dateTimeNow := time.Now()
-	err = db.Debug().Model(&ShortenedPayer{}).Where("cc_id = ?", payer.CCID).Updates(
-		ShortenedPayer{
-			CreditLimit:        payer.CreditLimit,
-			BankVirtualAccount: payer.BankVirtualAccount,
-			UpdatedAt:          &dateTimeNow,
-		}).Error
 	if err != nil {
 		return &ShortenedPayer{}, err
 	}
@@ -268,6 +215,65 @@ func (payer *ShortenedPayer) UpdateCredit(db *gorm.DB) (*ShortenedPayer, error) 
 	err = db.Debug().Model(&HistoricalPayerStatus{}).Create(&customStatus).Error
 	if err != nil {
 		return &ShortenedPayer{}, err
+	}
+
+	if *payer.PaperInvoice {
+		paperInvoiceFee := ShortenedFee{}
+		err = db.Debug().Model(&ShortenedFee{}).Where("name = ?", "Paper Invoice Fee").Order("id desc").Take(&paperInvoiceFee).Error
+		if err != nil {
+			return &ShortenedPayer{}, err
+		}
+
+		if paperInvoiceFee.DefaultValue > 0 {
+			chargedPaperInvoiceFee := ChargedAutomatedFee{}
+			fmt.Printf("%v", chargedPaperInvoiceFee.ID)
+			err = db.Debug().Model(&ChargedAutomatedFee{}).Where("fee_id = ?", paperInvoiceFee.ID).Order("id desc").Take(&chargedPaperInvoiceFee).Error
+			if err != nil {
+				if err.Error() == "record not found" {
+					chargePaperInvoiceFee := ChargedAutomatedFee{
+						CCID:  payer.CCID,
+						FeeID: paperInvoiceFee.ID,
+						Value: paperInvoiceFee.DefaultValue,
+					}
+
+					err = db.Debug().Create(&chargePaperInvoiceFee).Error
+					if err != nil {
+						return &ShortenedPayer{}, err
+					}
+				} else {
+					return &ShortenedPayer{}, err
+				}
+			}
+		}
+	}
+
+	if *payer.TelematicSubscriptionFee {
+		telematicSubscriptionFee := ShortenedFee{}
+		err = db.Debug().Model(&ShortenedFee{}).Where("name = ?", "Telematic Subscription Fee").Order("id desc").Take(&telematicSubscriptionFee).Error
+		if err != nil {
+			return &ShortenedPayer{}, err
+		}
+
+		if telematicSubscriptionFee.DefaultValue > 0 {
+			chargedTelematicSubscriptionFee := ChargedAutomatedFee{}
+			err = db.Debug().Model(&ChargedAutomatedFee{}).Where("fee_id = ?", telematicSubscriptionFee.ID).Order("id desc").Take(&chargedTelematicSubscriptionFee).Error
+			if err != nil {
+				if err.Error() == "record not found" {
+					chargeTelematicSubscriptionFee := ChargedAutomatedFee{
+						CCID:  payer.CCID,
+						FeeID: telematicSubscriptionFee.ID,
+						Value: telematicSubscriptionFee.DefaultValue,
+					}
+
+					err = db.Debug().Create(&chargeTelematicSubscriptionFee).Error
+					if err != nil {
+						return &ShortenedPayer{}, err
+					}
+				} else {
+					return &ShortenedPayer{}, err
+				}
+			}
+		}
 	}
 
 	return payer, nil

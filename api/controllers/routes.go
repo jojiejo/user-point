@@ -104,8 +104,6 @@ func (s *Server) initializeRoutes() {
 		payer.GET("/:id", s.GetPayer)
 		payer.GET("/:id/branches", s.GetBranchByCCID)
 		payer.PATCH("/:id/configuration", s.UpdateConfiguration)
-		payer.PATCH("/:id/credit", s.UpdateCredit)
-		payer.PATCH("/:id/invoice-production", s.UpdateInvoiceProduction)
 		payer.GET("/:id/charged-fees/automated", s.GetChargedAutomatedFeesOnSelectedAccount)
 	}
 
@@ -159,4 +157,9 @@ func (s *Server) initializeRoutes() {
 		automatedFee.GET("/:id", s.GetChargedAutomatedFee)
 		automatedFee.PUT("/:id", s.UpdateAutomatedFee)
 	}
+
+	//Rebate
+	s.Router.GET("/rebate/calculation-types", s.GetRebateCalculationTypes)
+	s.Router.GET("/rebate/types", s.GetRebateTypes)
+	s.Router.GET("/rebate/periods", s.GetRebatePeriods)
 }

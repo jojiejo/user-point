@@ -157,7 +157,7 @@ func (server *Server) CheckBulkChargeAdHocFee(c *gin.Context) {
 	checkedFieldBulkUpload, errorMessages := bulkChargeAdHocFee.BulkCheckAdHocFee(server.DB)
 	if len(errorMessages) > 0 {
 		log.Println(errorMessages)
-		c.JSON(http.StatusNotFound, gin.H{
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errorMessages,
 		})
 		return
