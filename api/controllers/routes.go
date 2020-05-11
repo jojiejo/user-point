@@ -158,8 +158,19 @@ func (s *Server) initializeRoutes() {
 		automatedFee.PUT("/:id", s.UpdateAutomatedFee)
 	}
 
+	//Product
+	s.Router.GET("/products", s.GetProducts)
+
 	//Rebate
 	s.Router.GET("/rebate/calculation-types", s.GetRebateCalculationTypes)
 	s.Router.GET("/rebate/types", s.GetRebateTypes)
 	s.Router.GET("/rebate/periods", s.GetRebatePeriods)
+	s.Router.GET("/rebate/programs", s.GetRebatePrograms)
+	rebateProgram := s.Router.Group("/rebate/program")
+	{
+		rebateProgram.GET("/:id", s.GetRebateProgram)
+		rebateProgram.POST("/", s.GetRebateProgram)
+		//rebateProgram.PUT("/:id", s.GetRebateProgram)
+		//rebateProgram.DELETE("/:id", s.GetRebateProgram)
+	}
 }
