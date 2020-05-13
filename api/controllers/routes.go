@@ -169,8 +169,8 @@ func (s *Server) initializeRoutes() {
 	rebateProgram := s.Router.Group("/rebate/program")
 	{
 		rebateProgram.GET("/:id", s.GetRebateProgram)
-		rebateProgram.POST("/", s.GetRebateProgram)
-		//rebateProgram.PUT("/:id", s.GetRebateProgram)
+		rebateProgram.POST("/", s.CreateRebateProgram)
+		rebateProgram.PUT("/:id", s.UpdateRebateProgram)
 		//rebateProgram.DELETE("/:id", s.GetRebateProgram)
 	}
 }

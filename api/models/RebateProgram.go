@@ -1,6 +1,9 @@
 package models
 
 import (
+	"errors"
+	"html"
+	"strings"
 	"time"
 
 	"github.com/jinzhu/gorm"
@@ -8,7 +11,7 @@ import (
 
 type RebateProgram struct {
 	ID                      uint64                `gorm:"primary_key;auto_increment" json:"id"`
-	Name                    string                `gorm:"not null;size:100" json:"code"`
+	Name                    string                `gorm:"not null;size:100" json:"name"`
 	RebateTypeID            uint64                `gorm:"not null;" json:"rebate_type_id"`
 	RebateType              RebateType            `json:"rebate_type"`
 	RebateCalculationTypeID uint64                `gorm:"not null;" json:"rebate_calculation_type_id"`
@@ -22,6 +25,38 @@ type RebateProgram struct {
 	CreatedAt               time.Time             `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt               time.Time             `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt               *time.Time            `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
+}
+
+func (rp *RebateProgram) Prepare() {
+	rp.Name = html.EscapeString(strings.TrimSpace(rp.Name))
+	rp.CreatedAt = time.Now()
+}
+
+func (rp *RebateProgram) Validate() map[string]string {
+	var err error
+	var errorMessages = make(map[string]string)
+
+	if rp.Name == "" {
+		err = errors.New("Name field is required")
+		errorMessages["name"] = err.Error()
+	}
+
+	if rp.RebateTypeID < 1 {
+		err = errors.New("Rebate type field is required")
+		errorMessages["rebate_type"] = err.Error()
+	}
+
+	if rp.RebateCalculationTypeID < 1 {
+		err = errors.New("Rebate calculation field is required")
+		errorMessages["rebate_calculation"] = err.Error()
+	}
+
+	if rp.RebatePeriodID < 1 {
+		err = errors.New("Rebate period field is required")
+		errorMessages["rebate_period"] = err.Error()
+	}
+
+	return errorMessages
 }
 
 func (rp *RebateProgram) FindRebatePrograms(db *gorm.DB) (*[]RebateProgram, error) {
@@ -60,6 +95,76 @@ func (rp *RebateProgram) FindRebateProgramByID(db *gorm.DB, rpID uint64) (*Rebat
 	}
 
 	return rp, nil
+}
+
+func (rp *RebateProgram) CreateRebateProgram(db *gorm.DB) (*RebateProgram, error) {
+	var err error
+	err = db.Debug().Model(&Fee{}).Create(&rp).Error
+	if err != nil {
+		return &RebateProgram{}, err
+	}
+
+	//Select created fee
+	_, err = rp.FindRebateProgramByID(db, rp.ID)
+	if err != nil {
+		return &RebateProgram{}, err
+	}
+
+	return rp, nil
+}
+
+func (rp *RebateProgram) UpdateRebateProgram(db *gorm.DB) (*RebateProgram, error) {
+	var err error
+	dateTimeNow := time.Now()
+
+	err = db.Debug().Model(&rp).Updates(
+		map[string]interface{}{
+			"name":                       rp.Name,
+			"rebate_type_id":             rp.RebateTypeID,
+			"rebate_calculation_type_id": rp.RebateCalculationTypeID,
+			"rebate_period_id":           rp.RebatePeriodID,
+			"started_at":                 rp.StartedAt,
+			"ended_at":                   rp.EndedAt,
+			"updated_at":                 dateTimeNow,
+		}).Error
+
+	if err != nil {
+		return &RebateProgram{}, err
+	}
+
+	//Update site
+	err = db.Debug().Model(&rp).Where("id = ?", rp.ID).Association("Site").Replace(rp.Site).Error
+	if err != nil {
+		return &RebateProgram{}, err
+	}
+
+	//Update product
+	err = db.Debug().Model(&rp).Where("id = ?", rp.ID).Association("Product").Replace(rp.Product).Error
+	if err != nil {
+		return &RebateProgram{}, err
+	}
+
+	//Select updated fee
+	_, err = rp.FindRebateProgramByID(db, rp.ID)
+	if err != nil {
+		return &RebateProgram{}, err
+	}
+
+	return rp, nil
+}
+
+func (rp *RebateProgram) DeactivateRebateProgramLater(db *gorm.DB) (int64, error) {
+	var err error
+	err = db.Debug().Model(&rp).Unscoped().Updates(
+		RebateProgram{
+			EndedAt: rp.EndedAt,
+		}).Error
+
+	if err != nil {
+		return 0, err
+	}
+
+	return 1, nil
 }
 
 func (RebatePeriod) TableName() string {
