@@ -8,7 +8,7 @@ import (
 
 type RebateCalculationType struct {
 	ID        uint64     `gorm:"primary_key;auto_increment" json:"id"`
-	Name      string     `gorm:"not null;size:100" json:"code"`
+	Name      string     `gorm:"not null;size:100" json:"name"`
 	CreatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 	UpdatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 	DeletedAt *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
