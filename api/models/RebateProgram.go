@@ -20,6 +20,7 @@ type RebateProgram struct {
 	RebatePeriod            RebatePeriod          `json:"rebate_period"`
 	Site                    []Site                `gorm:"many2many:rebate_program_site;association_autoupdate:false;association_jointable_foreignkey:rebate_program_id;association_jointable_foreignkey:site_id" json:"site"`
 	Product                 []Product             `gorm:"many2many:rebate_program_product;association_autoupdate:false;association_jointable_foreignkey:rebate_program_id;association_jointable_foreignkey:product_id" json:"product"`
+	Tier                    []RebateProgramTier   `gorm:"foreignkey:RebateProgramID;association_foreignkey:ID" json:"tier"`
 	StartedAt               *time.Time            `json:"started_at"`
 	EndedAt                 *time.Time            `json:"ended_at"`
 	CreatedAt               time.Time             `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
@@ -68,6 +69,7 @@ func (rp *RebateProgram) FindRebatePrograms(db *gorm.DB) (*[]RebateProgram, erro
 		Preload("RebateType").
 		Preload("RebatePeriod").
 		Preload("RebateCalculationType").
+		Preload("Tier").
 		Order("id, created_at desc").
 		Find(&rps).Error
 
@@ -86,6 +88,7 @@ func (rp *RebateProgram) FindRebateProgramByID(db *gorm.DB, rpID uint64) (*Rebat
 		Preload("RebateType").
 		Preload("RebatePeriod").
 		Preload("RebateCalculationType").
+		Preload("Tier").
 		Where("id = ?", rpID).
 		Order("created_at desc").
 		Take(&rp).Error
@@ -117,17 +120,8 @@ func (rp *RebateProgram) UpdateRebateProgram(db *gorm.DB) (*RebateProgram, error
 	var err error
 	dateTimeNow := time.Now()
 
-	err = db.Debug().Model(&rp).Updates(
-		map[string]interface{}{
-			"name":                       rp.Name,
-			"rebate_type_id":             rp.RebateTypeID,
-			"rebate_calculation_type_id": rp.RebateCalculationTypeID,
-			"rebate_period_id":           rp.RebatePeriodID,
-			"started_at":                 rp.StartedAt,
-			"ended_at":                   rp.EndedAt,
-			"updated_at":                 dateTimeNow,
-		}).Error
-
+	//Update tier
+	err = db.Debug().Where("rebate_program_id = ?", rp.ID).Delete(RebateProgramTier{}).Error
 	if err != nil {
 		return &RebateProgram{}, err
 	}
@@ -140,6 +134,21 @@ func (rp *RebateProgram) UpdateRebateProgram(db *gorm.DB) (*RebateProgram, error
 
 	//Update product
 	err = db.Debug().Model(&rp).Where("id = ?", rp.ID).Association("Product").Replace(rp.Product).Error
+	if err != nil {
+		return &RebateProgram{}, err
+	}
+
+	err = db.Debug().Model(&rp).Updates(
+		map[string]interface{}{
+			"name":                       rp.Name,
+			"rebate_type_id":             rp.RebateTypeID,
+			"rebate_calculation_type_id": rp.RebateCalculationTypeID,
+			"rebate_period_id":           rp.RebatePeriodID,
+			"started_at":                 rp.StartedAt,
+			"ended_at":                   rp.EndedAt,
+			"updated_at":                 dateTimeNow,
+		}).Error
+
 	if err != nil {
 		return &RebateProgram{}, err
 	}
