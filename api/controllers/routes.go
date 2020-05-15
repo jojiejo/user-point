@@ -165,7 +165,11 @@ func (s *Server) initializeRoutes() {
 	s.Router.GET("/rebate/calculation-types", s.GetRebateCalculationTypes)
 	s.Router.GET("/rebate/types", s.GetRebateTypes)
 	s.Router.GET("/rebate/periods", s.GetRebatePeriods)
-	s.Router.GET("/rebate/programs", s.GetRebatePrograms)
+	rebatePrograms := s.Router.Group("/rebate/programs")
+	{
+		rebatePrograms.GET("/", s.GetRebatePrograms)
+		rebatePrograms.GET("/type/:id", s.GetRebateProgramsByTypeID)
+	}
 	rebateProgram := s.Router.Group("/rebate/program")
 	{
 		rebateProgram.GET("/:id", s.GetRebateProgram)
@@ -173,4 +177,7 @@ func (s *Server) initializeRoutes() {
 		rebateProgram.PUT("/:id", s.UpdateRebateProgram)
 		//rebateProgram.DELETE("/:id", s.GetRebateProgram)
 	}
+
+	//Rebate to Account
+	s.Router.GET("/rebate/payer-relations", s.GetRebatePayerRelations)
 }

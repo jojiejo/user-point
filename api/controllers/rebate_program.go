@@ -34,6 +34,40 @@ func (server *Server) GetRebatePrograms(c *gin.Context) {
 	log.Printf("End => Get Rebate Programs")
 }
 
+func (server *Server) GetRebateProgramsByTypeID(c *gin.Context) {
+	log.Printf("Begin => Get Rebate Programs By Type ID")
+
+	rtID := c.Param("id")
+	convertedRtID, err := strconv.ParseUint(rtID, 10, 64)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	rebateProgram := models.RebateProgram{}
+	rebatePrograms, err := rebateProgram.FindRebateProgramsByTypeID(server.DB, convertedRtID)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["no_rebate_program"] = "No rebate program found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	stringifiedRebatePrograms, _ := json.Marshal(rebatePrograms)
+	log.Printf("Get Get Rebate Programs By Type ID : ", string(stringifiedRebatePrograms))
+	c.JSON(http.StatusOK, gin.H{
+		"response": rebatePrograms,
+	})
+
+	log.Printf("End => Get Rebate Programs By Type ID")
+}
+
 func (server *Server) GetRebateProgram(c *gin.Context) {
 	log.Printf("Begin => Get Rebate Program by ID")
 	rpID := c.Param("id")

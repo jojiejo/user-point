@@ -80,6 +80,27 @@ func (rp *RebateProgram) FindRebatePrograms(db *gorm.DB) (*[]RebateProgram, erro
 	return &rps, nil
 }
 
+func (rp *RebateProgram) FindRebateProgramsByTypeID(db *gorm.DB, rtID uint64) (*[]RebateProgram, error) {
+	var err error
+	rps := []RebateProgram{}
+	err = db.Debug().Model(&RebateProgram{}).Unscoped().
+		Preload("Site").
+		Preload("Product").
+		Preload("RebateType").
+		Preload("RebatePeriod").
+		Preload("RebateCalculationType").
+		Preload("Tier").
+		Where("rebate_type_id = ?", rtID).
+		Order("id, created_at desc").
+		Find(&rps).Error
+
+	if err != nil {
+		return &[]RebateProgram{}, err
+	}
+
+	return &rps, nil
+}
+
 func (rp *RebateProgram) FindRebateProgramByID(db *gorm.DB, rpID uint64) (*RebateProgram, error) {
 	var err error
 	err = db.Debug().Model(&Fee{}).Unscoped().
