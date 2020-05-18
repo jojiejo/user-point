@@ -139,6 +139,7 @@ func (server *Server) CreateRebateProgram(c *gin.Context) {
 
 	rpCreated, err := rp.CreateRebateProgram(server.DB)
 	if err != nil {
+		log.Println(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
 		})

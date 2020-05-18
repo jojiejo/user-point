@@ -34,8 +34,8 @@ func (cg *CardGroup) Validate() map[string]string {
 	}
 
 	if cg.SubCorporateID < 1 {
-		err = errors.New("Sub corporate field is required")
-		errorMessages["sub_corporate"] = err.Error()
+		err = errors.New("Sub account field is required")
+		errorMessages["sub_account"] = err.Error()
 	}
 
 	if cg.ResProfileID < 1 {

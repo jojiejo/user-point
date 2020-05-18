@@ -180,4 +180,6 @@ func (s *Server) initializeRoutes() {
 
 	//Rebate to Account
 	s.Router.GET("/rebate/payer-relations", s.GetRebatePayerRelations)
+	s.Router.POST("/rebate/main/payer-relations", s.CreateMainRebatePayer)
+	s.Router.POST("/rebate/promotional/payer-relations", s.CreatePromotionalRebatePayer)
 }
