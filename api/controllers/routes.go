@@ -183,6 +183,30 @@ func (s *Server) initializeRoutes() {
 	s.Router.POST("/rebate/main/payer-relations", s.CreateMainRebatePayer)
 	s.Router.POST("/rebate/promotional/payer-relations", s.CreatePromotionalRebatePayer)
 
-	//Posting Matrix
+	//Posting Matrix by Product
 	s.Router.GET("/posting-matrix/products", s.GetPostingMatrixProducts)
+	postingMatrixByProduct := s.Router.Group("/posting-matrix/product")
+	{
+		postingMatrixByProduct.GET("/:id", s.GetPostingMatrixProduct)
+		postingMatrixByProduct.POST("/", s.CreatePostingMatrixProduct)
+		postingMatrixByProduct.PUT("/:id", s.UpdatePostingMatrixProduct)
+	}
+
+	//Posting Matrix by Fee
+	s.Router.GET("/posting-matrix/fees", s.GetPostingMatrixFees)
+	postingMatrixByFee := s.Router.Group("/posting-matrix/fee")
+	{
+		postingMatrixByFee.GET("/:id", s.GetPostingMatrixFee)
+		postingMatrixByFee.POST("/", s.CreatePostingMatrixFee)
+		postingMatrixByFee.PUT("/:id", s.UpdatePostingMatrixFee)
+	}
+
+	//Posting Matrix by Tax
+	s.Router.GET("/posting-matrix/taxes", s.GetPostingMatrixTaxes)
+	postingMatrixByTax := s.Router.Group("/posting-matrix/tax")
+	{
+		postingMatrixByTax.GET("/:id", s.GetPostingMatrixTax)
+		postingMatrixByTax.POST("/", s.CreatePostingMatrixTax)
+		postingMatrixByTax.PUT("/:id", s.UpdatePostingMatrixTax)
+	}
 }

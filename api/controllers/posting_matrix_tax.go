@@ -11,11 +11,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (server *Server) GetPostingMatrixProducts(c *gin.Context) {
-	log.Printf("Begin => Get Posting Matrix Products")
+func (server *Server) GetPostingMatrixTaxes(c *gin.Context) {
+	log.Printf("Begin => Get Posting Matrix Taxes")
 
-	postingMatrixProduct := models.PostingMatrixProduct{}
-	postingMatrixProducts, err := postingMatrixProduct.FindPostingMatrixProducts(server.DB)
+	pmt := models.PostingMatrixTax{}
+	pmts, err := pmt.FindPostingMatrixTaxes(server.DB)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["no_posting_matrix"] = "No posting matrix product found"
@@ -25,19 +25,19 @@ func (server *Server) GetPostingMatrixProducts(c *gin.Context) {
 		return
 	}
 
-	stringifiedPostingMatrixProducts, _ := json.Marshal(postingMatrixProducts)
-	log.Printf("Get Posting Matrix Products : ", string(stringifiedPostingMatrixProducts))
+	stringifiedPmts, _ := json.Marshal(pmts)
+	log.Printf("Get Posting Matrix Fees : ", string(stringifiedPmts))
 	c.JSON(http.StatusOK, gin.H{
-		"response": postingMatrixProducts,
+		"response": pmts,
 	})
 
-	log.Printf("End => Get Posting Matrix Products")
+	log.Printf("End => Get Posting Matrix Taxes")
 }
 
-func (server *Server) GetPostingMatrixProduct(c *gin.Context) {
-	log.Printf("Begin => Get Posting Matrix by Product")
-	pmpID := c.Param("id")
-	convertedPmpID, err := strconv.ParseUint(pmpID, 10, 64)
+func (server *Server) GetPostingMatrixTax(c *gin.Context) {
+	log.Printf("Begin => Get Posting Matrix by Tax")
+	pmtID := c.Param("id")
+	convertedPmtID, err := strconv.ParseUint(pmtID, 10, 64)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["invalid_request"] = "Invalid request"
@@ -47,8 +47,8 @@ func (server *Server) GetPostingMatrixProduct(c *gin.Context) {
 		return
 	}
 
-	pmp := models.PostingMatrixProduct{}
-	pmpReceived, err := pmp.FindPostingMatrixProduct(server.DB, convertedPmpID)
+	pmt := models.PostingMatrixTax{}
+	pmtReceived, err := pmt.FindPostingMatrixTax(server.DB, convertedPmtID)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["no_posting_matrix"] = "No posting matrix found"
@@ -58,17 +58,17 @@ func (server *Server) GetPostingMatrixProduct(c *gin.Context) {
 		return
 	}
 
-	stringifiedPmpReceived, _ := json.Marshal(pmpReceived)
-	log.Printf("Get Posting Matrix by Product : ", string(stringifiedPmpReceived))
+	stringifiedPmpReceived, _ := json.Marshal(pmtReceived)
+	log.Printf("Get Posting Matrix by Tax : ", string(stringifiedPmpReceived))
 	c.JSON(http.StatusOK, gin.H{
-		"response": pmpReceived,
+		"response": pmtReceived,
 	})
 
-	log.Printf("End => Get Posting Matrix by Product")
+	log.Printf("End => Get Posting Matrix by Tax")
 }
 
-func (server *Server) CreatePostingMatrixProduct(c *gin.Context) {
-	log.Printf("Begin => Create Posting Matrix by Product")
+func (server *Server) CreatePostingMatrixTax(c *gin.Context) {
+	log.Printf("Begin => Create Posting Matrix by Tax")
 	errList = map[string]string{}
 
 	body, err := ioutil.ReadAll(c.Request.Body)
@@ -81,8 +81,8 @@ func (server *Server) CreatePostingMatrixProduct(c *gin.Context) {
 		return
 	}
 
-	pmp := models.PostingMatrixProduct{}
-	err = json.Unmarshal(body, &pmp)
+	pmt := models.PostingMatrixTax{}
+	err = json.Unmarshal(body, &pmt)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["unmarshal_error"] = "Cannot unmarshal body"
@@ -93,7 +93,7 @@ func (server *Server) CreatePostingMatrixProduct(c *gin.Context) {
 	}
 
 	var count int
-	err = server.DB.Debug().Model(models.PostingMatrixProduct{}).Where("product_id = ?", pmp.ProductID).Count(&count).Error
+	err = server.DB.Debug().Model(models.PostingMatrixTax{}).Where("gl_name = ?", pmt.GLName).Count(&count).Error
 	if err != nil {
 		log.Printf(err.Error())
 		errList["unmarshal_error"] = "Cannot unmarshal body"
@@ -104,7 +104,7 @@ func (server *Server) CreatePostingMatrixProduct(c *gin.Context) {
 	}
 
 	if count > 0 {
-		errString := "Entered product already exists"
+		errString := "Entered tax already exists"
 		log.Printf(errString)
 		errList["name"] = errString
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
@@ -113,8 +113,8 @@ func (server *Server) CreatePostingMatrixProduct(c *gin.Context) {
 		return
 	}
 
-	pmp.Prepare()
-	errorMessages := pmp.Validate()
+	pmt.Prepare()
+	errorMessages := pmt.Validate()
 	if len(errorMessages) > 0 {
 		log.Println(errorMessages)
 		errList = errorMessages
@@ -124,7 +124,7 @@ func (server *Server) CreatePostingMatrixProduct(c *gin.Context) {
 		return
 	}
 
-	pmpCreated, err := pmp.CreatePostingMatrixProduct(server.DB)
+	pmtCreated, err := pmt.CreatePostingMatrixTax(server.DB)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
@@ -132,18 +132,18 @@ func (server *Server) CreatePostingMatrixProduct(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{
-		"response": pmpCreated,
+		"response": pmtCreated,
 	})
 
-	log.Printf("End => Create Posting Matrix by Product")
+	log.Printf("End => Create Posting Matrix by Tax")
 }
 
-func (server *Server) UpdatePostingMatrixProduct(c *gin.Context) {
-	log.Printf("Begin => Update Posting Matrix Product")
+func (server *Server) UpdatePostingMatrixTax(c *gin.Context) {
+	log.Printf("Begin => Update Posting Matrix Tax")
 
 	errList = map[string]string{}
-	pmpID := c.Param("id")
-	pmpid, err := strconv.ParseUint(pmpID, 10, 64)
+	pmtID := c.Param("id")
+	pmtid, err := strconv.ParseUint(pmtID, 10, 64)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["invalid_request"] = "Invalid request"
@@ -153,8 +153,8 @@ func (server *Server) UpdatePostingMatrixProduct(c *gin.Context) {
 		return
 	}
 
-	originalPmp := models.PostingMatrixProduct{}
-	err = server.DB.Debug().Model(models.Fee{}).Where("id = ?", pmpid).Order("id desc").Take(&originalPmp).Error
+	originalPmt := models.PostingMatrixTax{}
+	err = server.DB.Debug().Model(models.PostingMatrixTax{}).Where("id = ?", pmtid).Order("id desc").Take(&originalPmt).Error
 	if err != nil {
 		log.Printf(err.Error())
 		errList["no_posting_matrix"] = "No posting matrix found"
@@ -174,8 +174,8 @@ func (server *Server) UpdatePostingMatrixProduct(c *gin.Context) {
 		return
 	}
 
-	pmp := models.PostingMatrixProduct{}
-	err = json.Unmarshal(body, &pmp)
+	pmt := models.PostingMatrixTax{}
+	err = json.Unmarshal(body, &pmt)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["unmarshal_error"] = "Cannot unmarshal body"
@@ -185,10 +185,9 @@ func (server *Server) UpdatePostingMatrixProduct(c *gin.Context) {
 		return
 	}
 
-	pmp.ID = originalPmp.ID
-	pmp.ProductID = originalPmp.ProductID
-	pmp.Prepare()
-	errorMessages := pmp.Validate()
+	pmt.ID = originalPmt.ID
+	pmt.Prepare()
+	errorMessages := pmt.Validate()
 	if len(errorMessages) > 0 {
 		log.Println(errorMessages)
 		errList = errorMessages
@@ -198,7 +197,7 @@ func (server *Server) UpdatePostingMatrixProduct(c *gin.Context) {
 		return
 	}
 
-	pmpUpdated, err := pmp.UpdatePostingMatrixProduct(server.DB)
+	pmtUpdated, err := pmt.UpdatePostingMatrixTax(server.DB)
 	if err != nil {
 		log.Printf(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -208,8 +207,8 @@ func (server *Server) UpdatePostingMatrixProduct(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"response": pmpUpdated,
+		"response": pmtUpdated,
 	})
 
-	log.Printf("End => Update Posting Matrix Product")
+	log.Printf("End => Update Posting Matrix Tax")
 }
