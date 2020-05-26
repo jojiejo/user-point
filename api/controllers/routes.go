@@ -209,4 +209,14 @@ func (s *Server) initializeRoutes() {
 		postingMatrixByTax.POST("/", s.CreatePostingMatrixTax)
 		postingMatrixByTax.PUT("/:id", s.UpdatePostingMatrixTax)
 	}
+
+	//Tax Type
+	s.Router.GET("/tax-types", s.GetAllTaxTypes)
+
+	//Tax
+	s.Router.GET("/taxes", s.GetAllTaxes)
+	tax := s.Router.Group("/tax")
+	{
+		tax.GET("/:id", s.GetTax)
+	}
 }
