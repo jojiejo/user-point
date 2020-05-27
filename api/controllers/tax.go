@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -67,7 +66,7 @@ func (server *Server) GetTax(c *gin.Context) {
 	log.Printf("End => Get Tax")
 }
 
-func (server *Server) CreateTax(c *gin.Context) {
+/*func (server *Server) CreateTax(c *gin.Context) {
 	log.Printf("Begin => Create Tax")
 	errList = map[string]string{}
 
@@ -136,4 +135,4 @@ func (server *Server) CreateTax(c *gin.Context) {
 	})
 
 	log.Printf("End => Create Tax")
-}
+}*/

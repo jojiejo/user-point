@@ -2,6 +2,8 @@ package models
 
 import (
 	"time"
+
+	"github.com/jinzhu/gorm"
 )
 
 type PostingMatrixVAT struct {
@@ -12,6 +14,20 @@ type PostingMatrixVAT struct {
 	CreatedAt   time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 	UpdatedAt   time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 	DeletedAt   *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+}
+
+func (pmv *PostingMatrixVAT) FindPostingMatrixVATs(db *gorm.DB) (*[]PostingMatrixVAT, error) {
+	var err error
+	pmvs := []PostingMatrixVAT{}
+	err = db.Debug().Model(&PostingMatrixVAT{}).
+		Order("id, created_at desc").
+		Find(&pmvs).Error
+
+	if err != nil {
+		return &[]PostingMatrixVAT{}, err
+	}
+
+	return &pmvs, nil
 }
 
 func (PostingMatrixVAT) TableName() string {

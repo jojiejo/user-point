@@ -183,6 +183,9 @@ func (s *Server) initializeRoutes() {
 	s.Router.POST("/rebate/main/payer-relations", s.CreateMainRebatePayer)
 	s.Router.POST("/rebate/promotional/payer-relations", s.CreatePromotionalRebatePayer)
 
+	//Posting Matrix VAT
+	s.Router.GET("/posting-matrix/vats", s.GetPostingMatrixVAT)
+
 	//Posting Matrix by Product
 	s.Router.GET("/posting-matrix/products", s.GetPostingMatrixProducts)
 	postingMatrixByProduct := s.Router.Group("/posting-matrix/product")

@@ -25,7 +25,7 @@ type Payer struct {
 	MembershipID             *int                   `gorm:"not null" json:"membership_id"`
 	MCMSID                   int                    `gorm:"not null;" json:"mcms_id"`
 	PaddedMCMSID             string                 `json:"padded_mcms_id"`
-	GSAPCustomerMasterData   GSAPCustomerMasterData `json:"gsap_customer_master_data"`
+	GSAPCustomerMasterData   GSAPCustomerMasterData `gorm:"ForeignKey:MCMSID;AssociationForeignKey:MCMSID" json:"gsap_customer_master_data"`
 	LatestPayerStatus        HistoricalPayerStatus  `json:"latest_payer_status"`
 	Branch                   []ShortenedBranch      `json:"branch"`
 	CreatedAt                time.Time              `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
@@ -156,7 +156,15 @@ func (payer *ShortenedPayer) FindAllPayers(db *gorm.DB) (*[]ShortenedPayer, erro
 
 func (payer *Payer) FindPayerByCCID(db *gorm.DB, CCID uint64) (*Payer, error) {
 	var err error
-	err = db.Debug().Model(&Payer{}).Unscoped().Where("cc_id = ?", CCID).Order("created_at desc").Take(&payer).Error
+	err = db.Debug().Model(&Payer{}).
+		Preload("GSAPCustomerMasterData.SalesRep").
+		Preload("GSAPCustomerMasterData.IndustryClass").
+		Preload("GSAPCustomerMasterData.BusinessType").
+		Preload("GSAPCustomerMasterData.AccountClass").
+		Preload("GSAPCustomerMasterData.PaymentTerm").
+		Unscoped().Where("cc_id = ?", CCID).
+		Order("created_at desc").
+		Take(&payer).Error
 	if err != nil {
 		return &Payer{}, err
 	}
