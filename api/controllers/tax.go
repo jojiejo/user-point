@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -66,7 +67,7 @@ func (server *Server) GetTax(c *gin.Context) {
 	log.Printf("End => Get Tax")
 }
 
-/*func (server *Server) CreateTax(c *gin.Context) {
+func (server *Server) CreateTax(c *gin.Context) {
 	log.Printf("Begin => Create Tax")
 	errList = map[string]string{}
 
@@ -92,7 +93,7 @@ func (server *Server) GetTax(c *gin.Context) {
 	}
 
 	var count int
-	err = server.DB.Debug().Model(models.PostingMatrixProduct{}).Where("product_id = ?", pmp.ProductID).Count(&count).Error
+	err = server.DB.Debug().Model(models.Tax{}).Where("tax_type_id = ? AND province_id = ? AND (ended_at IS NULL OR ended_at > ?)", tax.TaxTypeID, tax.ProvinceID, tax.StartedAt).Count(&count).Error
 	if err != nil {
 		log.Printf(err.Error())
 		errList["unmarshal_error"] = "Cannot unmarshal body"
@@ -103,17 +104,18 @@ func (server *Server) GetTax(c *gin.Context) {
 	}
 
 	if count > 0 {
-		errString := "Entered product already exists"
-		log.Printf(errString)
-		errList["name"] = errString
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": errList,
-		})
-		return
+		err = tax.UpdateRelatedTax(server.DB)
+		if err != nil {
+			log.Printf(err.Error())
+			c.JSON(http.StatusUnprocessableEntity, gin.H{
+				"error": err,
+			})
+			return
+		}
 	}
 
-	pmp.Prepare()
-	errorMessages := pmp.Validate()
+	tax.Prepare()
+	errorMessages := tax.Validate()
 	if len(errorMessages) > 0 {
 		log.Println(errorMessages)
 		errList = errorMessages
@@ -123,7 +125,7 @@ func (server *Server) GetTax(c *gin.Context) {
 		return
 	}
 
-	pmpCreated, err := pmp.CreatePostingMatrixProduct(server.DB)
+	taxCreated, err := tax.CreateTax(server.DB)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,
@@ -131,8 +133,73 @@ func (server *Server) GetTax(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{
-		"response": pmpCreated,
+		"response": taxCreated,
 	})
 
 	log.Printf("End => Create Tax")
-}*/
+}
+
+func (server *Server) UpdateTax(c *gin.Context) {
+	log.Printf("Begin => Update Tax")
+
+	errList = map[string]string{}
+	taxID := c.Param("id")
+	taxid, err := strconv.ParseUint(taxID, 10, 64)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalTax := models.Tax{}
+	err = server.DB.Debug().Model(models.Fee{}).Where("id = ?", taxid).Order("id desc").Take(&originalTax).Error
+	if err != nil {
+		log.Printf(err.Error())
+		errList["no_tax"] = "No tax found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_body"] = "Unable to get request"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	tax := models.Tax{}
+	err = json.Unmarshal(body, &tax)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	tax.ID = originalTax.ID
+	tax.Prepare()
+	taxUpdated, err := tax.UpdateTax(server.DB)
+	if err != nil {
+		log.Printf(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"response": taxUpdated,
+	})
+
+	log.Printf("End => Update Tax")
+}

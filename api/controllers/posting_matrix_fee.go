@@ -93,7 +93,7 @@ func (server *Server) CreatePostingMatrixFee(c *gin.Context) {
 	}
 
 	var count int
-	err = server.DB.Debug().Model(models.PostingMatrixProduct{}).Where("fee_id = ?", pmf.FeeID).Count(&count).Error
+	err = server.DB.Debug().Model(models.PostingMatrixFee{}).Where("fee_id = ?", pmf.FeeID).Count(&count).Error
 	if err != nil {
 		log.Printf(err.Error())
 		errList["unmarshal_error"] = "Cannot unmarshal body"

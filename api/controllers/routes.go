@@ -221,5 +221,7 @@ func (s *Server) initializeRoutes() {
 	tax := s.Router.Group("/tax")
 	{
 		tax.GET("/:id", s.GetTax)
+		tax.POST("/", s.CreateTax)
+		tax.PUT("/:id", s.UpdateTax)
 	}
 }
