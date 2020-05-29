@@ -224,4 +224,13 @@ func (s *Server) initializeRoutes() {
 		tax.POST("/", s.CreateTax)
 		tax.PUT("/:id", s.UpdateTax)
 	}
+
+	//Faktur Pajak
+	s.Router.GET("/faktur-pajak-ranges", s.GetAllFakturPajakRange)
+	s.Router.GET("/faktur-pajak-ranges/available-number", s.GetNextAvailableFakturPajakNumber)
+	s.Router.GET("/faktur-pajak-ranges/available-range", s.GetAvailableFakturPajakRange)
+	fakturPajakRange := s.Router.Group("/faktur-pajak-range")
+	{
+		fakturPajakRange.POST("/", s.CreateFakturPajakRange)
+	}
 }
