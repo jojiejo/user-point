@@ -112,7 +112,7 @@ func (server *Server) CreateMainRebatePayer(c *gin.Context) {
 		return
 	} else {
 		stringifiedPrpCreated, _ := json.Marshal(prpCreated)
-		log.Printf("Get Bulk Charge Ad Hoc Fee : ", string(stringifiedPrpCreated))
+		log.Printf("Get Main Rebate Payer: ", string(stringifiedPrpCreated))
 		c.JSON(http.StatusOK, gin.H{
 			"response": prpCreated,
 		})
@@ -171,8 +171,8 @@ func (server *Server) CreatePromotionalRebatePayer(c *gin.Context) {
 		}
 	}
 
-	if numberOfRelation > 0 {
-		errList["linked_retailer"] = strconv.Itoa(numberOfRelation) + " of selected account still have an active main rebate."
+	if numberOfRelation > 1 {
+		errList["linked_retailer"] = strconv.Itoa(numberOfRelation) + " of selected account still have an active promotional rebate."
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,
 		})
@@ -199,7 +199,7 @@ func (server *Server) CreatePromotionalRebatePayer(c *gin.Context) {
 		return
 	} else {
 		stringifiedPrpCreated, _ := json.Marshal(prpCreated)
-		log.Printf("Get Bulk Charge Ad Hoc Fee : ", string(stringifiedPrpCreated))
+		log.Printf("Get Promotional Rebate Payer : ", string(stringifiedPrpCreated))
 		c.JSON(http.StatusOK, gin.H{
 			"response": prpCreated,
 		})

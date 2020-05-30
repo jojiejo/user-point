@@ -16,7 +16,7 @@ type Tax struct {
 	Value      float64    `gorm:"not null;" json:"value"`
 	StartedAt  time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"started_at"`
 	EndedAt    *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"ended_at"`
-	CreatedAt  time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
+	CreatedAt  time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt  time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 	DeletedAt  *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"-"`
 }
