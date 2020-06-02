@@ -207,3 +207,111 @@ func (server *Server) CreatePromotionalRebatePayer(c *gin.Context) {
 
 	log.Printf("End => Create Rebate Payer Relation")
 }
+
+func (server *Server) CheckBulkAssignRebateToPayer(c *gin.Context) {
+	log.Printf("Begin => Check Bulk Assign Rebate to Payer")
+	errList = map[string]string{}
+
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_body"] = "Unable to get request"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	bulkCheckRebate := models.BulkAssignRebate{}
+	err = json.Unmarshal(body, &bulkCheckRebate)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	bulkCheckRebate.Prepare()
+	errorMessages := bulkCheckRebate.Validate()
+	if len(errorMessages) > 0 {
+		log.Println(errorMessages)
+		errList = errorMessages
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	checkedField, errorMessages := bulkCheckRebate.BulkCheckAssignRebate(server.DB)
+	if len(errorMessages) > 0 {
+		log.Println(errorMessages)
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errorMessages,
+		})
+		return
+	} else {
+		stringifiedCheckedField, _ := json.Marshal(checkedField)
+		log.Printf("Get Bulk Assign Rebate to Payer : ", string(stringifiedCheckedField))
+		c.JSON(http.StatusOK, gin.H{
+			"response": checkedField,
+		})
+	}
+
+	log.Printf("End => Check Bulk Assign Rebate to Payer")
+}
+
+func (server *Server) BulkAssignRebateToPayer(c *gin.Context) {
+	log.Printf("Begin => Bulk Assign Rebate To Payer")
+	errList = map[string]string{}
+
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_body"] = "Unable to get request"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	bulkAssignRebate := models.BulkAssignRebate{}
+	err = json.Unmarshal(body, &bulkAssignRebate)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	bulkAssignRebate.Prepare()
+	errorMessages := bulkAssignRebate.ChargeValidate()
+	if len(errorMessages) > 0 {
+		log.Println(errorMessages)
+		errList = errorMessages
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	bulkAssignField, errorMessages := bulkAssignRebate.BulkAssignRebate(server.DB)
+	if len(errorMessages) > 0 {
+		log.Println(errorMessages)
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errorMessages,
+		})
+		return
+	} else {
+		stringifiedBulkAssignField, _ := json.Marshal(bulkAssignField)
+		log.Printf("Get Bulk Assign Rebate To Payer : ", string(stringifiedBulkAssignField))
+		c.JSON(http.StatusOK, gin.H{
+			"response": bulkAssignField,
+		})
+	}
+
+	log.Printf("End => Bulk Assign Rebate To Payer")
+}

@@ -21,7 +21,7 @@ type RebateProgram struct {
 	Site                    []Site                `gorm:"many2many:rebate_program_site;association_autoupdate:false;association_jointable_foreignkey:rebate_program_id;association_jointable_foreignkey:site_id" json:"site"`
 	Product                 []Product             `gorm:"many2many:rebate_program_product;association_autoupdate:false;association_jointable_foreignkey:rebate_program_id;association_jointable_foreignkey:product_id" json:"product"`
 	Tier                    []RebateProgramTier   `gorm:"foreignkey:RebateProgramID;association_foreignkey:ID" json:"tier"`
-	StartedAt               *time.Time            `json:"started_at"`
+	StartedAt               time.Time             `json:"started_at"`
 	EndedAt                 *time.Time            `json:"ended_at"`
 	CreatedAt               time.Time             `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt               time.Time             `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
