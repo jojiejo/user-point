@@ -34,6 +34,39 @@ func (server *Server) GetRebatePayerRelations(c *gin.Context) {
 	log.Printf("End => Get Rebate Payer Relations")
 }
 
+func (server *Server) GetRebatePayerRelationByID(c *gin.Context) {
+	log.Printf("Begin => Get Rebate Payer Relation By ID")
+	relationID := c.Param("id")
+	convertedRelationID, err := strconv.ParseUint(relationID, 10, 64)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	rebatePayerRelation := models.RebatePayer{}
+	rebatePayerRelationReceived, err := rebatePayerRelation.FindRebatePayerRelationByID(server.DB, convertedRelationID)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["no_relation"] = "No relation found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	stringifiedReceivedRebatePayerRelation, _ := json.Marshal(rebatePayerRelationReceived)
+	log.Printf("Get Rebate Payer Relation By ID : ", string(stringifiedReceivedRebatePayerRelation))
+	c.JSON(http.StatusOK, gin.H{
+		"response": rebatePayerRelationReceived,
+	})
+
+	log.Printf("End => Get Rebate Payer Relation By ID")
+}
+
 func (server *Server) CreateMainRebatePayer(c *gin.Context) {
 	log.Printf("Begin => Create Rebate Payer Relation")
 	errList = map[string]string{}

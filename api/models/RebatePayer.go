@@ -171,6 +171,31 @@ func (rp *RebatePayer) FindRebatePayerRelations(db *gorm.DB) (*[]RebatePayer, er
 	return &rps, nil
 }
 
+func (rp *RebatePayer) FindRebatePayerRelationByID(db *gorm.DB, relationID uint64) (*RebatePayer, error) {
+	var err error
+	err = db.Debug().Model(&RebatePayer{}).Unscoped().
+		Preload("Payer").
+		Preload("Payer.GSAPCustomerMasterData").
+		Preload("Payer.LatestPayerStatus").
+		Preload("Payer.LatestPayerStatus.PayerStatus").
+		Preload("RebateProgram").
+		Preload("RebateProgram.RebateType").
+		Preload("RebateProgram.RebateCalculationType").
+		Preload("RebateProgram.RebatePeriod").
+		Preload("RebateProgram.Site").
+		Preload("RebateProgram.Product").
+		Order("id, created_at desc").
+		Find(&rp).Error
+
+	rp.Payer.PaddedMCMSID = fmt.Sprintf("%010v", strconv.Itoa(rp.Payer.MCMSID))
+
+	if err != nil {
+		return &RebatePayer{}, err
+	}
+
+	return rp, nil
+}
+
 func (prp *PostedRebatePayer) CreateRebatePayerRelation(db *gorm.DB) (*PostedRebatePayer, map[string]string) {
 	var err error
 	var errorMessages = make(map[string]string)
