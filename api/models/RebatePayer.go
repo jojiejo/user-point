@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"html"
 	"strconv"
 	"strings"
@@ -156,6 +157,12 @@ func (rp *RebatePayer) FindRebatePayerRelations(db *gorm.DB) (*[]RebatePayer, er
 		Preload("RebateProgram.Product").
 		Order("id, created_at desc").
 		Find(&rps).Error
+
+	if len(rps) > 0 {
+		for i, _ := range rps {
+			rps[i].Payer.PaddedMCMSID = fmt.Sprintf("%010v", strconv.Itoa(rps[i].Payer.MCMSID))
+		}
+	}
 
 	if err != nil {
 		return &[]RebatePayer{}, err
