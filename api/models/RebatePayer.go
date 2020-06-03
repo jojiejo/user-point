@@ -184,6 +184,7 @@ func (rp *RebatePayer) FindRebatePayerRelationByID(db *gorm.DB, relationID uint6
 		Preload("RebateProgram.RebatePeriod").
 		Preload("RebateProgram.Site").
 		Preload("RebateProgram.Product").
+		Where("id = ?", relationID).
 		Order("id, created_at desc").
 		Find(&rp).Error
 
