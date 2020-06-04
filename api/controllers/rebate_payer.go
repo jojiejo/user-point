@@ -241,6 +241,70 @@ func (server *Server) CreatePromotionalRebatePayer(c *gin.Context) {
 	log.Printf("End => Create Rebate Payer Relation")
 }
 
+func (server *Server) UpdateRebatePayerRelation(c *gin.Context) {
+	log.Printf("Begin => Update Rebate Payer Relation")
+
+	errList = map[string]string{}
+	relationID := c.Param("id")
+	relationid, err := strconv.ParseUint(relationID, 10, 64)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	originalRelation := models.RebatePayer{}
+	err = server.DB.Debug().Model(models.RebatePayer{}).Where("id = ?", relationid).Order("id desc").Take(&originalRelation).Error
+	if err != nil {
+		log.Printf(err.Error())
+		errList["no_relation_found"] = "No relation found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_body"] = "Unable to get request"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	relation := models.RebatePayer{}
+	err = json.Unmarshal(body, &relation)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	relation.ID = originalRelation.ID
+	relationUpdated, err := relation.UpdateRebatePayerRelation(server.DB)
+	if err != nil {
+		log.Printf(err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"response": relationUpdated,
+	})
+
+	log.Printf("End => Update Update Rebate Payer Relation")
+}
+
 func (server *Server) CheckBulkAssignRebateToPayer(c *gin.Context) {
 	log.Printf("Begin => Check Bulk Assign Rebate to Payer")
 	errList = map[string]string{}

@@ -28,6 +28,7 @@ type Payer struct {
 	GSAPCustomerMasterData   GSAPCustomerMasterData `gorm:"ForeignKey:MCMSID;AssociationForeignKey:MCMSID" json:"gsap_customer_master_data"`
 	LatestPayerStatus        HistoricalPayerStatus  `json:"latest_payer_status"`
 	Branch                   []ShortenedBranch      `json:"branch"`
+	FakturPajakInvoice       []FakturPajakInvoice   `gorm:"ForeignKey:CCID;AssociationForeignKey:CCID" json:"faktur_pajak_invoice"`
 	CreatedAt                time.Time              `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt                *time.Time             `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt                *time.Time             `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
@@ -162,6 +163,7 @@ func (payer *Payer) FindPayerByCCID(db *gorm.DB, CCID uint64) (*Payer, error) {
 		Preload("GSAPCustomerMasterData.BusinessType").
 		Preload("GSAPCustomerMasterData.AccountClass").
 		Preload("GSAPCustomerMasterData.PaymentTerm").
+		Preload("FakturPajakInvoice").
 		Unscoped().Where("cc_id = ?", CCID).
 		Order("created_at desc").
 		Take(&payer).Error

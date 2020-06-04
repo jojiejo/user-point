@@ -223,6 +223,29 @@ func (prp *PostedRebatePayer) CreateRebatePayerRelation(db *gorm.DB) (*PostedReb
 	return prp, errorMessages
 }
 
+func (rp *RebatePayer) UpdateRebatePayerRelation(db *gorm.DB) (*RebatePayer, error) {
+	var err error
+	dateTimeNow := time.Now()
+
+	err = db.Debug().Model(&rp).Updates(
+		map[string]interface{}{
+			"ended_at":   rp.EndedAt,
+			"updated_at": dateTimeNow,
+		}).Error
+
+	if err != nil {
+		return &RebatePayer{}, err
+	}
+
+	//Select updated relation
+	_, err = rp.FindRebatePayerRelationByID(db, rp.ID)
+	if err != nil {
+		return &RebatePayer{}, err
+	}
+
+	return rp, nil
+}
+
 func (bar *BulkAssignRebate) BulkCheckAssignRebate(db *gorm.DB) (*BulkAssignRebate, map[string]string) {
 	var err error
 	var errorMessages = make(map[string]string)

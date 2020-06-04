@@ -180,14 +180,19 @@ func (s *Server) initializeRoutes() {
 
 	//Rebate to Account
 	s.Router.GET("/rebate/payer-relations", s.GetRebatePayerRelations)
-	s.Router.GET("/rebate/payer-relation/:id", s.GetRebatePayerRelationByID)
+	assignedRebatePayerRelation := s.Router.Group("/rebate/payer-relation")
+	{
+		assignedRebatePayerRelation.GET("/:id", s.GetRebatePayerRelationByID)
+		assignedRebatePayerRelation.PUT("/:id", s.UpdateRebatePayerRelation)
+	}
+
 	s.Router.POST("/rebate/main/payer-relations", s.CreateMainRebatePayer)
 	//s.Router.POST("/rebate/:rebate_id/payer-association/:pa_id", s.GetRelationByRebateAndPA)
-	assignPromotionalRebate := s.Router.Group("/rebate/promotional")
+	assignedPromotionalRebate := s.Router.Group("/rebate/promotional")
 	{
-		assignPromotionalRebate.POST("/payer-relations", s.CreatePromotionalRebatePayer)
-		assignPromotionalRebate.POST("/bulk-check", s.CheckBulkAssignRebateToPayer)
-		assignPromotionalRebate.POST("/bulk-assign", s.BulkAssignRebateToPayer)
+		assignedPromotionalRebate.POST("/payer-relations", s.CreatePromotionalRebatePayer)
+		assignedPromotionalRebate.POST("/bulk-check", s.CheckBulkAssignRebateToPayer)
+		assignedPromotionalRebate.POST("/bulk-assign", s.BulkAssignRebateToPayer)
 	}
 
 	//Posting Matrix VAT
