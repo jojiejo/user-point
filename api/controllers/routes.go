@@ -245,4 +245,10 @@ func (s *Server) initializeRoutes() {
 	{
 		fakturPajakRange.POST("/", s.CreateFakturPajakRange)
 	}
+
+	//Transactions
+	transaction := s.Router.Group("/transactions")
+	{
+		transaction.GET("/manual-settlement/:date", s.GetAllTransactionForManualSettlement)
+	}
 }

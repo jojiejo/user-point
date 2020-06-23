@@ -200,11 +200,11 @@ func (rp *RebatePayer) FindRebatePayerRelationByID(db *gorm.DB, relationID uint6
 func (prp *PostedRebatePayer) CreateRebatePayerRelation(db *gorm.DB) (*PostedRebatePayer, map[string]string) {
 	var err error
 	var errorMessages = make(map[string]string)
-	rebatePayerRelation := RebatePayer{}
 
 	if len(prp.CCID) > 0 {
 		for i, _ := range prp.CCID {
 			var convertedLineNumber string
+			rebatePayerRelation := RebatePayer{}
 			convertedLineNumber = strconv.Itoa(i)
 			rebatePayerRelation.CCID = prp.CCID[i]
 			rebatePayerRelation.RebateProgramID = prp.RebateProgramID
