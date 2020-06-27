@@ -249,6 +249,10 @@ func (s *Server) initializeRoutes() {
 	//Transactions
 	transaction := s.Router.Group("/transactions")
 	{
-		transaction.GET("/manual-settlement/:date", s.GetAllTransactionForManualSettlement)
+		transaction.GET("/manual-settlement/:dateFrom/:dateTo", s.GetAllTransactionForManualSettlement)
 	}
+
+	//Manual Settlement
+	s.Router.POST("/manual-settlement", s.ManualSettle)
+	s.Router.POST("/manual-settlement/all", s.ManualSettleAllTransaction)
 }
