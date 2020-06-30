@@ -84,8 +84,37 @@ func (server *Server) ManualSettle(c *gin.Context) {
 func (server *Server) ManualSettleAllTransaction(c *gin.Context) {
 	errList = map[string]string{}
 
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		errList["invalid_body"] = "Unable to get request"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
 	trx := models.TransactionForManualSettlement{}
-	err := trx.ManualSettleAllTransaction(server.DB)
+	err = json.Unmarshal(body, &trx)
+	if err != nil {
+		fmt.Println(err.Error())
+		errList["unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	trx.Prepare()
+	errorMessages := trx.ValidateForSettleAllTransaction()
+	if len(errorMessages) > 0 {
+		errList = errorMessages
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	err = trx.ManualSettleAllTransaction(server.DB)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err,

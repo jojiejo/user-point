@@ -18,6 +18,8 @@ type TransactionForManualSettlement struct {
 	TotalQuantity           float32   `json:"total_quantity"`
 	BatchNumber             uint64    `json:"batch_number"`
 	SettlementStatus        string    `json:"settlement_status"`
+	DateFrom                string    `json:"date_from,omitempty"`
+	DateTo                  string    `json:"date_to,omitempty"`
 }
 
 func (trx *TransactionForManualSettlement) Prepare() {
@@ -42,6 +44,23 @@ func (trx *TransactionForManualSettlement) Validate() map[string]string {
 	if trx.MerchantID == "" {
 		err = errors.New("Merchant ID is required")
 		errorMessages["required_batch_number"] = err.Error()
+	}
+
+	return errorMessages
+}
+
+func (trx *TransactionForManualSettlement) ValidateForSettleAllTransaction() map[string]string {
+	var err error
+	var errorMessages = make(map[string]string)
+
+	if trx.DateFrom == "" {
+		err = errors.New("Date from field is required")
+		errorMessages["date_from"] = err.Error()
+	}
+
+	if trx.DateTo == "" {
+		err = errors.New("Date to field is required")
+		errorMessages["date_from"] = err.Error()
 	}
 
 	return errorMessages
@@ -103,8 +122,8 @@ func (trx *TransactionForManualSettlement) ManualSettleAllTransaction(db *gorm.D
 	requestMTI := "0200"
 	saleStatus := "SA"
 	err = db.Debug().Table("EDCTransactionMonitor").
-		Where("sale_settle_status = ? AND request_mti = ? AND sale_status = ?",
-			saleSettleStatus, requestMTI, saleStatus).
+		Where("sale_settle_status = ? AND request_mti = ? AND sale_status = ? AND transaction_date >= ? AND transaction_date <= ?",
+			saleSettleStatus, requestMTI, saleStatus, trx.DateFrom, trx.DateTo).
 		Updates(
 			map[string]interface{}{
 				"sale_settle_status": "Y",
