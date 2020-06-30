@@ -255,4 +255,11 @@ func (s *Server) initializeRoutes() {
 	//Manual Settlement
 	s.Router.POST("/manual-settlement", s.ManualSettle)
 	s.Router.POST("/manual-settlement/all", s.ManualSettleAllTransaction)
+
+	//Card (Telematic device purpose)
+	card := s.Router.Group("/card")
+	{
+		card.GET("/:id/telematic-device", s.GetTelematicDeviceByCardID)
+		card.PUT("/:id/telematic-device", s.UpdateTelematicDevice)
+	}
 }
