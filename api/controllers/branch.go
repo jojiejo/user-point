@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"fleethub.shell.co.id/api/models"
 	"github.com/gin-gonic/gin"
@@ -164,4 +165,92 @@ func (server *Server) UpdateCardGroupFlagInSelectedBranch(c *gin.Context) {
 	})
 
 	log.Printf("End => Update Card Group Flag In Selected Branch")
+}
+
+func (server *Server) GetTransactionInvoiceByBranch(c *gin.Context) {
+	log.Printf("Begin => Get Transaction Invoice By Branch")
+	subCorporateID := c.Param("id")
+	month := c.Param("month")
+	year := c.Param("year")
+
+	convertedYear, _ := strconv.Atoi(year)
+	convertedMonth, _ := strconv.Atoi(month)
+	firstDay := time.Date(convertedYear, time.Month(convertedMonth), 1, 0, 0, 0, 0, time.Local)
+	lastDay := firstDay.AddDate(0, 1, 0).Add(time.Nanosecond * -1)
+
+	parsedFirstDay := firstDay.Format("20060102")
+	parsedLastDay := lastDay.Format("20060102")
+
+	convertedSubCorporateID, err := strconv.ParseUint(subCorporateID, 10, 64)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	tibb := models.TransactionInvoiceByBranch{}
+	tibbReceived, err := tibb.FindInvoiceBySubCorporateIDAndDate(server.DB, convertedSubCorporateID, parsedFirstDay, parsedLastDay)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["no_posting_matrix"] = "No invoice found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	stringifiedTIBB, _ := json.Marshal(tibbReceived)
+	log.Printf("Get Transaction Invoice by Payer : ", string(stringifiedTIBB))
+	c.JSON(http.StatusOK, gin.H{
+		"response": tibbReceived,
+	})
+
+	log.Printf("End => Get Transaction Invoice By Branch")
+}
+
+func (server *Server) GetFeeInvoiceByBranch(c *gin.Context) {
+	log.Printf("Begin => Get Fee Invoice By Branch")
+	subCorporateID := c.Param("id")
+	month := c.Param("month")
+	year := c.Param("year")
+
+	convertedYear, _ := strconv.Atoi(year)
+	convertedMonth, _ := strconv.Atoi(month)
+	firstDay := time.Date(convertedYear, time.Month(convertedMonth), 1, 0, 0, 0, 0, time.Local)
+	lastDay := firstDay.AddDate(0, 1, 0).Add(time.Nanosecond * -1)
+
+	parsedFirstDay := firstDay.Format("20060102")
+	parsedLastDay := lastDay.Format("20060102")
+
+	convertedSubCorporateID, err := strconv.ParseUint(subCorporateID, 10, 64)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	fibb := models.FeeInvoiceByBranch{}
+	tibbReceived, err := fibb.FindFeeInvoiceBySubCorporateIDAndDate(server.DB, convertedSubCorporateID, parsedFirstDay, parsedLastDay)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["no_posting_matrix"] = "No invoice found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	stringifiedFIBB, _ := json.Marshal(tibbReceived)
+	log.Printf("Get Transaction Invoice by Payer : ", string(stringifiedFIBB))
+	c.JSON(http.StatusOK, gin.H{
+		"response": tibbReceived,
+	})
+
+	log.Printf("End => Get Fee Invoice By Branch")
 }

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"fleethub.shell.co.id/api/models"
 	"github.com/gin-gonic/gin"
@@ -115,4 +116,92 @@ func (server *Server) UpdateConfiguration(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"response": payerUpdated,
 	})
+}
+
+func (server *Server) GetTransactionInvoiceByPayer(c *gin.Context) {
+	log.Printf("Begin => Get Transaction Invoice By Payer")
+	CCID := c.Param("id")
+	month := c.Param("month")
+	year := c.Param("year")
+
+	convertedYear, _ := strconv.Atoi(year)
+	convertedMonth, _ := strconv.Atoi(month)
+	firstDay := time.Date(convertedYear, time.Month(convertedMonth), 1, 0, 0, 0, 0, time.Local)
+	lastDay := firstDay.AddDate(0, 1, 0).Add(time.Nanosecond * -1)
+
+	parsedFirstDay := firstDay.Format("20060102")
+	parsedLastDay := lastDay.Format("20060102")
+
+	convertedCCID, err := strconv.ParseUint(CCID, 10, 64)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	tibp := models.TransactionInvoiceByPayer{}
+	tibpReceived, err := tibp.FindInvoiceByCCIDAndDate(server.DB, convertedCCID, parsedFirstDay, parsedLastDay)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["no_posting_matrix"] = "No invoice found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	stringifiedTIBP, _ := json.Marshal(tibpReceived)
+	log.Printf("Get Transaction Invoice by Payer : ", string(stringifiedTIBP))
+	c.JSON(http.StatusOK, gin.H{
+		"response": tibpReceived,
+	})
+
+	log.Printf("End => Get Transaction Invoice By Payer")
+}
+
+func (server *Server) GetFeeInvoiceByPayer(c *gin.Context) {
+	log.Printf("Begin => Get Fee Invoice By Payer")
+	CCID := c.Param("id")
+	month := c.Param("month")
+	year := c.Param("year")
+
+	convertedYear, _ := strconv.Atoi(year)
+	convertedMonth, _ := strconv.Atoi(month)
+	firstDay := time.Date(convertedYear, time.Month(convertedMonth), 1, 0, 0, 0, 0, time.Local)
+	lastDay := firstDay.AddDate(0, 1, 0).Add(time.Nanosecond * -1)
+
+	parsedFirstDay := firstDay.Format("20060102")
+	parsedLastDay := lastDay.Format("20060102")
+
+	convertedCCID, err := strconv.ParseUint(CCID, 10, 64)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	fibp := models.FeeInvoiceByPayer{}
+	fibpReceived, err := fibp.FindFeeInvoiceByCCIDAndDate(server.DB, convertedCCID, parsedFirstDay, parsedLastDay)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["no_posting_matrix"] = "No invoice found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	stringifiedFIBP, _ := json.Marshal(fibpReceived)
+	log.Printf("Get Transaction Invoice by Payer : ", string(stringifiedFIBP))
+	c.JSON(http.StatusOK, gin.H{
+		"response": fibpReceived,
+	})
+
+	log.Printf("End => Get Fee Invoice By Payer")
 }

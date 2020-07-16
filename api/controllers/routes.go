@@ -105,6 +105,8 @@ func (s *Server) initializeRoutes() {
 		payer.GET("/:id/branches", s.GetBranchByCCID)
 		payer.PATCH("/:id/configuration", s.UpdateConfiguration)
 		payer.GET("/:id/charged-fees/automated", s.GetChargedAutomatedFeesOnSelectedAccount)
+		payer.GET("/:id/transaction-invoice/:month/:year", s.GetTransactionInvoiceByPayer)
+		payer.GET("/:id/fee-invoice/:month/:year", s.GetFeeInvoiceByPayer)
 	}
 
 	//Branch
@@ -113,6 +115,8 @@ func (s *Server) initializeRoutes() {
 		branch.GET("/:id", s.GetBranch)
 		branch.GET("/:id/card-groups", s.GetCardGroupsByBranchID)
 		branch.PUT("/:id", s.UpdateCardGroupFlagInSelectedBranch)
+		branch.GET("/:id/transaction-invoice/:month/:year", s.GetTransactionInvoiceByBranch)
+		branch.GET("/:id/fee-invoice/:month/:year", s.GetFeeInvoiceByBranch)
 	}
 
 	//Card Group

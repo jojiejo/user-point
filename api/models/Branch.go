@@ -9,6 +9,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+//ShortenedBranch
 type ShortenedBranch struct {
 	SubCorporateID         int                             `gorm:"primary_key;auto_increment" json:"sub_corporate_id"`
 	CCID                   int                             `gorm:"not null;" json:"cc_id"`
