@@ -11,33 +11,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (server *Server) GetProducts(c *gin.Context) {
-	log.Printf("Begin => Get Products")
+func (server *Server) GetCardTypes(c *gin.Context) {
+	log.Printf("Begin => Get Card Types")
 
-	product := models.Product{}
-	products, err := product.FindProducts(server.DB)
+	cardType := models.CardType{}
+	cardTypes, err := cardType.FindCardTypes(server.DB)
 	if err != nil {
 		log.Printf(err.Error())
-		errList["no_product"] = "No product found"
+		errList["no_card_types"] = "No card type found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
 		return
 	}
 
-	stringifiedProduct, _ := json.Marshal(products)
-	log.Printf("Get Products : ", string(stringifiedProduct))
+	stringifiedCardTypes, _ := json.Marshal(cardTypes)
+	log.Printf("Get Card Types : ", string(stringifiedCardTypes))
 	c.JSON(http.StatusOK, gin.H{
-		"response": products,
+		"response": cardTypes,
 	})
 
-	log.Printf("End => Get Products")
+	log.Printf("End => Get Card Types")
 }
 
-func (server *Server) GetProduct(c *gin.Context) {
-	log.Printf("Begin => Get Product")
-	productID := c.Param("id")
-	convertedProductID, err := strconv.ParseUint(productID, 10, 64)
+func (server *Server) GetCardType(c *gin.Context) {
+	log.Printf("Begin => Get Card Type")
+	cardTypeID := c.Param("id")
+	convertedCardTypeID, err := strconv.ParseUint(cardTypeID, 10, 64)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["invalid_request"] = "Invalid request"
@@ -47,28 +47,28 @@ func (server *Server) GetProduct(c *gin.Context) {
 		return
 	}
 
-	product := models.Product{}
-	productReceived, err := product.FindProductByID(server.DB, convertedProductID)
+	cardType := models.CardType{}
+	cardTypeReceived, err := cardType.FindCardTypeByID(server.DB, convertedCardTypeID)
 	if err != nil {
 		log.Printf(err.Error())
-		errList["no_product"] = "No product found"
+		errList["no_card_type"] = "No card type found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
 		return
 	}
 
-	stringifiedReceivedProduct, _ := json.Marshal(productReceived)
-	log.Printf("Get Product : ", string(stringifiedReceivedProduct))
+	stringifiedReceivedCardType, _ := json.Marshal(cardTypeReceived)
+	log.Printf("Get Card Type : ", string(stringifiedReceivedCardType))
 	c.JSON(http.StatusOK, gin.H{
-		"response": productReceived,
+		"response": cardTypeReceived,
 	})
 
-	log.Printf("End => Get Product")
+	log.Printf("End => Get Card Type")
 }
 
-func (server *Server) CreateProduct(c *gin.Context) {
-	log.Printf("Begin => Create Product")
+func (server *Server) CreateCardType(c *gin.Context) {
+	log.Printf("Begin => Create Card Type")
 	errList = map[string]string{}
 
 	body, err := ioutil.ReadAll(c.Request.Body)
@@ -81,8 +81,8 @@ func (server *Server) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	product := models.Product{}
-	err = json.Unmarshal(body, &product)
+	cardType := models.CardType{}
+	err = json.Unmarshal(body, &cardType)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["unmarshal_error"] = "Cannot unmarshal body"
@@ -92,8 +92,8 @@ func (server *Server) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	product.Prepare()
-	errorMessages := product.Validate()
+	cardType.Prepare()
+	errorMessages := cardType.Validate()
 	if len(errorMessages) > 0 {
 		log.Println(errorMessages)
 		errList = errorMessages
@@ -103,7 +103,7 @@ func (server *Server) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	productCreated, err := product.CreateProduct(server.DB)
+	cardTypeCreated, err := cardType.CreateCardType(server.DB)
 	if err != nil {
 		log.Printf(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -112,19 +112,19 @@ func (server *Server) CreateProduct(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{
-		"response": productCreated,
+		"response": cardTypeCreated,
 	})
 
-	log.Printf("End => Create Product")
+	log.Printf("End => Create Card Type")
 }
 
-func (server *Server) UpdateProduct(c *gin.Context) {
-	log.Printf("Begin => Update Product")
+func (server *Server) UpdateCardType(c *gin.Context) {
+	log.Printf("Begin => Update Card Type")
 
 	errList = map[string]string{}
-	productID := c.Param("id")
+	cardTypeID := c.Param("id")
 
-	convertedProductID, err := strconv.ParseUint(productID, 10, 64)
+	convertedCardTypeID, err := strconv.ParseUint(cardTypeID, 10, 64)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["invalid_request"] = "Invalid request"
@@ -134,11 +134,11 @@ func (server *Server) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	originalProduct := models.Product{}
-	err = server.DB.Debug().Model(models.Product{}).Where("product_id = ?", convertedProductID).Order("product_id desc").Take(&originalProduct).Error
+	originalCardType := models.CardType{}
+	err = server.DB.Debug().Model(models.CardType{}).Where("card_type_id = ?", convertedCardTypeID).Order("card_type_id desc").Take(&originalCardType).Error
 	if err != nil {
 		log.Printf(err.Error())
-		errList["no_product"] = "No product found"
+		errList["no_card_type"] = "No card type found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
@@ -155,8 +155,8 @@ func (server *Server) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	product := models.Product{}
-	err = json.Unmarshal(body, &product)
+	cardType := models.CardType{}
+	err = json.Unmarshal(body, &cardType)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["unmarshal_error"] = "Cannot unmarshal body"
@@ -166,9 +166,9 @@ func (server *Server) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	product.ID = originalProduct.ID
-	product.Prepare()
-	errorMessages := product.Validate()
+	cardType.ID = originalCardType.ID
+	cardType.Prepare()
+	errorMessages := cardType.Validate()
 	if len(errorMessages) > 0 {
 		log.Println(errorMessages)
 		errList = errorMessages
@@ -178,7 +178,7 @@ func (server *Server) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	productUpdated, err := product.UpdateProduct(server.DB)
+	cardTypeUpdated, err := cardType.UpdateCardType(server.DB)
 	if err != nil {
 		log.Printf(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -188,8 +188,8 @@ func (server *Server) UpdateProduct(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"response": productUpdated,
+		"response": cardTypeUpdated,
 	})
 
-	log.Printf("End => Update Product")
+	log.Printf("End => Update Card Type")
 }

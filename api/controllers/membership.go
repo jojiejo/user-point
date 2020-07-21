@@ -11,33 +11,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (server *Server) GetProducts(c *gin.Context) {
-	log.Printf("Begin => Get Products")
+func (server *Server) GetMemberships(c *gin.Context) {
+	log.Printf("Begin => Get Memberships")
 
-	product := models.Product{}
-	products, err := product.FindProducts(server.DB)
+	membership := models.Membership{}
+	memberships, err := membership.FindMemberships(server.DB)
 	if err != nil {
 		log.Printf(err.Error())
-		errList["no_product"] = "No product found"
+		errList["no_card_types"] = "No card type found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
 		return
 	}
 
-	stringifiedProduct, _ := json.Marshal(products)
-	log.Printf("Get Products : ", string(stringifiedProduct))
+	stringifiedMemberships, _ := json.Marshal(memberships)
+	log.Printf("Get Card Types : ", string(stringifiedMemberships))
 	c.JSON(http.StatusOK, gin.H{
-		"response": products,
+		"response": memberships,
 	})
 
-	log.Printf("End => Get Products")
+	log.Printf("End => Get Memberships")
 }
 
-func (server *Server) GetProduct(c *gin.Context) {
-	log.Printf("Begin => Get Product")
-	productID := c.Param("id")
-	convertedProductID, err := strconv.ParseUint(productID, 10, 64)
+func (server *Server) GetMembership(c *gin.Context) {
+	log.Printf("Begin => Get Card Type")
+	membershipID := c.Param("id")
+	convertedMembershipID, err := strconv.ParseUint(membershipID, 10, 64)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["invalid_request"] = "Invalid request"
@@ -47,28 +47,28 @@ func (server *Server) GetProduct(c *gin.Context) {
 		return
 	}
 
-	product := models.Product{}
-	productReceived, err := product.FindProductByID(server.DB, convertedProductID)
+	membership := models.Membership{}
+	receivedMembership, err := membership.FindMembershipByID(server.DB, convertedMembershipID)
 	if err != nil {
 		log.Printf(err.Error())
-		errList["no_product"] = "No product found"
+		errList["no_membership"] = "No membership found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
 		return
 	}
 
-	stringifiedReceivedProduct, _ := json.Marshal(productReceived)
-	log.Printf("Get Product : ", string(stringifiedReceivedProduct))
+	stringifiedReceivedMembership, _ := json.Marshal(receivedMembership)
+	log.Printf("Get Card Type : ", string(stringifiedReceivedMembership))
 	c.JSON(http.StatusOK, gin.H{
-		"response": productReceived,
+		"response": receivedMembership,
 	})
 
-	log.Printf("End => Get Product")
+	log.Printf("End => Get Card Type")
 }
 
-func (server *Server) CreateProduct(c *gin.Context) {
-	log.Printf("Begin => Create Product")
+func (server *Server) CreateMembership(c *gin.Context) {
+	log.Printf("Begin => Create Membership")
 	errList = map[string]string{}
 
 	body, err := ioutil.ReadAll(c.Request.Body)
@@ -81,8 +81,8 @@ func (server *Server) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	product := models.Product{}
-	err = json.Unmarshal(body, &product)
+	membership := models.Membership{}
+	err = json.Unmarshal(body, &membership)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["unmarshal_error"] = "Cannot unmarshal body"
@@ -92,8 +92,8 @@ func (server *Server) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	product.Prepare()
-	errorMessages := product.Validate()
+	membership.Prepare()
+	errorMessages := membership.Validate()
 	if len(errorMessages) > 0 {
 		log.Println(errorMessages)
 		errList = errorMessages
@@ -103,7 +103,7 @@ func (server *Server) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	productCreated, err := product.CreateProduct(server.DB)
+	createdMembership, err := membership.CreateMembership(server.DB)
 	if err != nil {
 		log.Printf(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -112,19 +112,19 @@ func (server *Server) CreateProduct(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{
-		"response": productCreated,
+		"response": createdMembership,
 	})
 
-	log.Printf("End => Create Product")
+	log.Printf("End => Create Membership")
 }
 
-func (server *Server) UpdateProduct(c *gin.Context) {
-	log.Printf("Begin => Update Product")
+func (server *Server) UpdateMembership(c *gin.Context) {
+	log.Printf("Begin => Update Membership")
 
 	errList = map[string]string{}
-	productID := c.Param("id")
+	membershipID := c.Param("id")
 
-	convertedProductID, err := strconv.ParseUint(productID, 10, 64)
+	convertedMembershipID, err := strconv.ParseUint(membershipID, 10, 64)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["invalid_request"] = "Invalid request"
@@ -134,11 +134,11 @@ func (server *Server) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	originalProduct := models.Product{}
-	err = server.DB.Debug().Model(models.Product{}).Where("product_id = ?", convertedProductID).Order("product_id desc").Take(&originalProduct).Error
+	originalMembership := models.Membership{}
+	err = server.DB.Debug().Model(models.CardType{}).Where("membership_code = ?", convertedMembershipID).Order("membership_code desc").Take(&originalMembership).Error
 	if err != nil {
 		log.Printf(err.Error())
-		errList["no_product"] = "No product found"
+		errList["no_membership"] = "No membership found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
@@ -155,8 +155,8 @@ func (server *Server) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	product := models.Product{}
-	err = json.Unmarshal(body, &product)
+	membership := models.Membership{}
+	err = json.Unmarshal(body, &membership)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["unmarshal_error"] = "Cannot unmarshal body"
@@ -166,9 +166,9 @@ func (server *Server) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	product.ID = originalProduct.ID
-	product.Prepare()
-	errorMessages := product.Validate()
+	membership.ID = originalMembership.ID
+	membership.Prepare()
+	errorMessages := membership.Validate()
 	if len(errorMessages) > 0 {
 		log.Println(errorMessages)
 		errList = errorMessages
@@ -178,7 +178,7 @@ func (server *Server) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	productUpdated, err := product.UpdateProduct(server.DB)
+	updatedMembership, err := membership.UpdateMembership(server.DB)
 	if err != nil {
 		log.Printf(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -188,8 +188,8 @@ func (server *Server) UpdateProduct(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"response": productUpdated,
+		"response": updatedMembership,
 	})
 
-	log.Printf("End => Update Product")
+	log.Printf("End => Update Membership")
 }

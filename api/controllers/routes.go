@@ -164,6 +164,39 @@ func (s *Server) initializeRoutes() {
 
 	//Product
 	s.Router.GET("/products", s.GetProducts)
+	product := s.Router.Group("/product")
+	{
+		product.GET("/:id", s.GetProduct)
+		product.POST("/", s.CreateProduct)
+		product.PUT("/:id", s.UpdateProduct)
+	}
+
+	//Card Type
+	s.Router.GET("/card-types", s.GetCardTypes)
+	cardType := s.Router.Group("/card-type")
+	{
+		cardType.GET("/:id", s.GetCardType)
+		cardType.POST("/", s.CreateCardType)
+		cardType.PUT("/:id", s.UpdateCardType)
+	}
+
+	//Membership
+	s.Router.GET("/memberships", s.GetMemberships)
+	membership := s.Router.Group("/membership")
+	{
+		membership.GET("/:id", s.GetMembership)
+		membership.POST("/", s.CreateMembership)
+		membership.PUT("/:id", s.UpdateMembership)
+	}
+
+	//Industry Classification
+	s.Router.GET("/industry-classifications", s.GetIndustryClassifications)
+	industryClassification := s.Router.Group("/industry-classification")
+	{
+		industryClassification.GET("/:id", s.GetIndustryClassification)
+		industryClassification.POST("/", s.CreateIndustryClassification)
+		industryClassification.PUT("/:id", s.UpdateIndustryClassification)
+	}
 
 	//Rebate
 	s.Router.GET("/rebate/calculation-types", s.GetRebateCalculationTypes)
