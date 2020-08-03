@@ -183,6 +183,15 @@ func (s *Server) initializeRoutes() {
 		productGroup.PUT("/:id")*/
 	}
 
+	//Sales Rep
+	s.Router.GET("/sales-reps", s.GetSalesReps)
+	salesRep := s.Router.Group("/sales-rep")
+	{
+		salesRep.GET("/:id", s.GetSalesRep)
+		salesRep.POST("/", s.CreateSalesRep)
+		salesRep.PUT("/:id", s.UpdateSalesRep)
+	}
+
 	//Card Type
 	s.Router.GET("/card-types", s.GetCardTypes)
 	cardType := s.Router.Group("/card-type")
