@@ -11,33 +11,33 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (server *Server) GetSalesReps(c *gin.Context) {
-	log.Printf("Begin => Get Sales Reps")
+func (server *Server) GetAccountClasses(c *gin.Context) {
+	log.Printf("Begin => Get Account Classes")
 
-	sr := models.SalesRep{}
-	srs, err := sr.FindSalesReps(server.DB)
+	ac := models.AccountClass{}
+	acs, err := ac.FindAccountClasses(server.DB)
 	if err != nil {
 		log.Printf(err.Error())
-		errList["no_sales_rep"] = "No sales rep found"
+		errList["no_account_class"] = "No account class found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
 		return
 	}
 
-	stringifiedSalesReps, _ := json.Marshal(srs)
-	log.Printf("Get Sales Reps : ", string(stringifiedSalesReps))
+	stringifiedAccountClasses, _ := json.Marshal(acs)
+	log.Printf("Get Sales Reps : ", string(stringifiedAccountClasses))
 	c.JSON(http.StatusOK, gin.H{
-		"response": srs,
+		"response": acs,
 	})
 
-	log.Printf("End => Get Sales Reps")
+	log.Printf("End => Get Account Classes")
 }
 
-func (server *Server) GetSalesRep(c *gin.Context) {
-	log.Printf("Begin => Get Sales Rep")
-	srID := c.Param("id")
-	convertedSrID, err := strconv.ParseUint(srID, 10, 64)
+func (server *Server) GetAccountClass(c *gin.Context) {
+	log.Printf("Begin => Get Account Class")
+	acID := c.Param("id")
+	convertedACID, err := strconv.ParseUint(acID, 10, 64)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["invalid_request"] = "Invalid request"
@@ -47,28 +47,28 @@ func (server *Server) GetSalesRep(c *gin.Context) {
 		return
 	}
 
-	sr := models.SalesRep{}
-	receivedSR, err := sr.FindSalesRepByID(server.DB, convertedSrID)
+	ac := models.AccountClass{}
+	receivedAccountClass, err := ac.FindAccountClassByID(server.DB, convertedACID)
 	if err != nil {
 		log.Printf(err.Error())
-		errList["no_sales_rep"] = "No sales rep found"
+		errList["no_account_class"] = "No account class found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
 		return
 	}
 
-	stringifiedReceivedSR, _ := json.Marshal(receivedSR)
-	log.Printf("Get Sales Rep : ", string(stringifiedReceivedSR))
+	stringifiedAccountClass, _ := json.Marshal(receivedAccountClass)
+	log.Printf("Get Sales Rep : ", string(stringifiedAccountClass))
 	c.JSON(http.StatusOK, gin.H{
-		"response": receivedSR,
+		"response": receivedAccountClass,
 	})
 
-	log.Printf("End => Get Sales Rep")
+	log.Printf("End => Get Account Class")
 }
 
-func (server *Server) CreateSalesRep(c *gin.Context) {
-	log.Printf("Begin => Create Sales Rep")
+func (server *Server) CreateAccountClass(c *gin.Context) {
+	log.Printf("Begin => Create Account Class")
 	errList = map[string]string{}
 
 	body, err := ioutil.ReadAll(c.Request.Body)
@@ -81,8 +81,8 @@ func (server *Server) CreateSalesRep(c *gin.Context) {
 		return
 	}
 
-	sr := models.SalesRep{}
-	err = json.Unmarshal(body, &sr)
+	ac := models.AccountClass{}
+	err = json.Unmarshal(body, &ac)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["unmarshal_error"] = "Cannot unmarshal body"
@@ -92,8 +92,8 @@ func (server *Server) CreateSalesRep(c *gin.Context) {
 		return
 	}
 
-	sr.Prepare()
-	errorMessages := sr.Validate()
+	ac.Prepare()
+	errorMessages := ac.Validate()
 	if len(errorMessages) > 0 {
 		log.Println(errorMessages)
 		errList = errorMessages
@@ -103,7 +103,7 @@ func (server *Server) CreateSalesRep(c *gin.Context) {
 		return
 	}
 
-	createdSr, err := sr.CreateSalesRep(server.DB)
+	createdAccountClass, err := ac.CreateAccountClass(server.DB)
 	if err != nil {
 		log.Printf(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -112,19 +112,19 @@ func (server *Server) CreateSalesRep(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, gin.H{
-		"response": createdSr,
+		"response": createdAccountClass,
 	})
 
-	log.Printf("End => Create Sales Rep")
+	log.Printf("End => Create Account Class")
 }
 
-func (server *Server) UpdateSalesRep(c *gin.Context) {
-	log.Printf("Begin => Update Sales Rep")
+func (server *Server) UpdateAccountClass(c *gin.Context) {
+	log.Printf("Begin => Update Account Class")
 
 	errList = map[string]string{}
-	srID := c.Param("id")
+	acID := c.Param("id")
 
-	convertedSrID, err := strconv.ParseUint(srID, 10, 64)
+	convertedACID, err := strconv.ParseUint(acID, 10, 64)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["invalid_request"] = "Invalid request"
@@ -134,11 +134,11 @@ func (server *Server) UpdateSalesRep(c *gin.Context) {
 		return
 	}
 
-	originalSalesRep := models.SalesRep{}
-	err = server.DB.Debug().Model(models.SalesRep{}).Where("id = ?", convertedSrID).Order("id desc").Take(&originalSalesRep).Error
+	originalAccountClass := models.AccountClass{}
+	err = server.DB.Debug().Model(models.AccountClass{}).Where("id = ?", convertedACID).Order("id desc").Take(&originalAccountClass).Error
 	if err != nil {
 		log.Printf(err.Error())
-		errList["no_sales_rep"] = "No sales rep found"
+		errList["no_account_class"] = "No account class found"
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": errList,
 		})
@@ -155,8 +155,8 @@ func (server *Server) UpdateSalesRep(c *gin.Context) {
 		return
 	}
 
-	sr := models.SalesRep{}
-	err = json.Unmarshal(body, &sr)
+	ac := models.AccountClass{}
+	err = json.Unmarshal(body, &ac)
 	if err != nil {
 		log.Printf(err.Error())
 		errList["unmarshal_error"] = "Cannot unmarshal body"
@@ -166,9 +166,9 @@ func (server *Server) UpdateSalesRep(c *gin.Context) {
 		return
 	}
 
-	sr.ID = originalSalesRep.ID
-	sr.Prepare()
-	errorMessages := sr.Validate()
+	ac.ID = originalAccountClass.ID
+	ac.Prepare()
+	errorMessages := ac.Validate()
 	if len(errorMessages) > 0 {
 		log.Println(errorMessages)
 		errList = errorMessages
@@ -178,7 +178,7 @@ func (server *Server) UpdateSalesRep(c *gin.Context) {
 		return
 	}
 
-	updatedSalesRep, err := sr.UpdateSalesRep(server.DB)
+	updatedAccountClass, err := ac.UpdateAccountClass(server.DB)
 	if err != nil {
 		log.Printf(err.Error())
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -188,8 +188,8 @@ func (server *Server) UpdateSalesRep(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"response": updatedSalesRep,
+		"response": updatedAccountClass,
 	})
 
-	log.Printf("End => Update Sales Rep")
+	log.Printf("End => Update Account Class")
 }

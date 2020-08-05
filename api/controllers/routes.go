@@ -192,6 +192,15 @@ func (s *Server) initializeRoutes() {
 		salesRep.PUT("/:id", s.UpdateSalesRep)
 	}
 
+	//Account Class
+	s.Router.GET("/account-classes", s.GetAccountClasses)
+	accountClass := s.Router.Group("/account-class")
+	{
+		accountClass.GET("/:id", s.GetAccountClass)
+		accountClass.POST("/", s.CreateAccountClass)
+		accountClass.PUT("/:id", s.UpdateAccountClass)
+	}
+
 	//Card Type
 	s.Router.GET("/card-types", s.GetCardTypes)
 	cardType := s.Router.Group("/card-type")
