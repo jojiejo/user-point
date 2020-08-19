@@ -107,6 +107,17 @@ func (s *Server) initializeRoutes() {
 		payer.GET("/:id/charged-fees/automated", s.GetChargedAutomatedFeesOnSelectedAccount)
 		payer.GET("/:id/transaction-invoice/:month/:year", s.GetTransactionInvoiceByPayer)
 		payer.GET("/:id/fee-invoice/:month/:year", s.GetFeeInvoiceByPayer)
+
+		//Contact Person
+		payer.GET("/:id/contact-persons", s.GetPayerContactPersons)
+	}
+
+	//Payer Contact Person
+	contactPerson := s.Router.Group("/contact-person")
+	{
+		contactPerson.GET("/:id", s.GetPayerContactPerson)
+		contactPerson.POST("/", s.CreatePayerContactPerson)
+		contactPerson.PUT("/:id", s.UpdatePayerContactPerson)
 	}
 
 	//Branch
@@ -329,4 +340,5 @@ func (s *Server) initializeRoutes() {
 		card.GET("/:id/telematic-device", s.GetTelematicDeviceByCardID)
 		card.PUT("/:id/telematic-device", s.UpdateTelematicDevice)
 	}
+
 }
