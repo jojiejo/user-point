@@ -212,6 +212,15 @@ func (s *Server) initializeRoutes() {
 		accountClass.PUT("/:id", s.UpdateAccountClass)
 	}
 
+	//Business Type
+	s.Router.GET("/business-types", s.GetBusinessTypes)
+	businessType := s.Router.Group("/business-type")
+	{
+		businessType.GET("/:id", s.GetBusinessType)
+		businessType.POST("/", s.CreateBusinessType)
+		businessType.PUT("/:id", s.UpdateBusinessType)
+	}
+
 	//Card Type
 	s.Router.GET("/card-types", s.GetCardTypes)
 	cardType := s.Router.Group("/card-type")
