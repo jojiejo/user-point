@@ -1,0 +1,54 @@
+{
+    "response": {
+        "data": [
+            {
+                "cc_id": 21,
+                "sale_product_code": "22",
+                "total_monthly_amount": 320000,
+                "total_monthly_volume": 34.12,
+                "corporate_name": "WIRECARD TEST CUSTOMER",
+                "padded_mcms_id": "0000000005",
+                "payer_number": "0012725137",
+                "sale_product_name": "Super",
+                "site_code": "1090923125",
+                "site_name": "SHELL JATIWARINGIN-4 JAKARTA",
+                "account_manager": "Apud Saepudin",
+                "customer_banding": "Silver"
+            },
+            {
+                "cc_id": 21,
+                "sale_product_code": "23",
+                "total_monthly_amount": 560091,
+                "total_monthly_volume": 63.19,
+                "corporate_name": "WIRECARD TEST CUSTOMER",
+                "padded_mcms_id": "0000000005",
+                "payer_number": "0012725137",
+                "sale_product_name": "Shell Regular",
+                "site_code": "1090923125",
+                "site_name": "SHELL JATIWARINGIN-4 JAKARTA",
+                "account_manager": "Apud Saepudin",
+                "customer_banding": "Silver"
+            },
+            {
+                "cc_id": 21,
+                "sale_product_code": "26",
+                "total_monthly_amount": 370000,
+                "total_monthly_volume": 44.04,
+                "corporate_name": "WIRECARD TEST CUSTOMER",
+                "padded_mcms_id": "0000000005",
+                "payer_number": "0012725137",
+                "sale_product_name": "VPower",
+                "site_code": "1090923125",
+                "site_name": "SHELL JATIWARINGIN-4 JAKARTA",
+                "account_manager": "Apud Saepudin",
+                "customer_banding": "Silver"
+            }
+        ],
+        "report_name": "Monthly Sales Report",
+        "document_number": "0000000001",
+        "overall_amount": 1250091,
+        "overall_volume": 141.35,
+        "dateFrom": "20200501",
+        "dateTo": "20200531"
+    }
+}

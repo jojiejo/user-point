@@ -20,6 +20,16 @@ func (s *Server) initializeRoutes() {
 	//Unit
 	s.Router.GET("/units", s.GetAllUnits)
 
+	// REPORT
+	// DAILY SALES REPORT
+	// s.Router.GET("/report-daily-sales", s.GetDailySalesReport)
+	s.Router.GET("/report-daily-sales/:report_date", s.GetDailySalesReport)
+	s.Router.GET("/report-monthly-sales/:report_date", s.GetMonthlySalesReport)
+	s.Router.GET("/report-monthly-dass/:report_date", s.GetMonthlyDassReport)
+	s.Router.GET("/report-daily-transaction-customer/:account_name/:report_date", s.GetDailyTransactionCustomerReport)
+	s.Router.GET("/report-daily-transaction-shell/:report_date", s.GetDailyTransactionCustomerReport)
+	s.Router.GET("/report-daily-statement/:sold_to_number/:ship_to_number/:report_date", s.GetDailyStatementReport)
+
 	//Province
 	s.Router.GET("/provinces", s.GetProvinces)
 	s.Router.GET("/province/:id", s.GetProvince)
@@ -351,5 +361,4 @@ func (s *Server) initializeRoutes() {
 		card.GET("/:id/telematic-device", s.GetTelematicDeviceByCardID)
 		card.PUT("/:id/telematic-device", s.UpdateTelematicDevice)
 	}
-
 }

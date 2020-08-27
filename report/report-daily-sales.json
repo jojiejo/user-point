@@ -1,0 +1,50 @@
+{
+    "response": {
+        "data": [
+            {
+                "padded_mcms_id": "0000000005",
+                "corporate_name": "WIRECARD TEST CUSTOMER",
+                "site_code": "1090923125",
+                "site_name": "SHELL JATIWARINGIN-4 JAKARTA",
+                "sale_product_code": "22",
+                "sale_product_name": "Super",
+                "total_daily_amount": 320000,
+                "total_daily_volume": 34.12,
+                "account_manager": "Apud Saepudin",
+                "customer_banding": "Silver",
+                "cc_id": 21
+            },
+            {
+                "padded_mcms_id": "0000000005",
+                "corporate_name": "WIRECARD TEST CUSTOMER",
+                "site_code": "1090923125",
+                "site_name": "SHELL JATIWARINGIN-4 JAKARTA",
+                "sale_product_code": "23",
+                "sale_product_name": "Shell Regular",
+                "total_daily_amount": 296436,
+                "total_daily_volume": 35.29,
+                "account_manager": "Apud Saepudin",
+                "customer_banding": "Silver",
+                "cc_id": 21
+            },
+            {
+                "padded_mcms_id": "0000000005",
+                "corporate_name": "WIRECARD TEST CUSTOMER",
+                "site_code": "1090923125",
+                "site_name": "SHELL JATIWARINGIN-4 JAKARTA",
+                "sale_product_code": "26",
+                "sale_product_name": "VPower",
+                "total_daily_amount": 370000,
+                "total_daily_volume": 44.04,
+                "account_manager": "Apud Saepudin",
+                "customer_banding": "Silver",
+                "cc_id": 21
+            }
+        ],
+        "report_name": "Daily Sales Report",
+        "document_number": "0000000001",
+        "overall_amount": 986436,
+        "overall_volume": 113.45,
+        "period": "20200502"
+    }
+}
