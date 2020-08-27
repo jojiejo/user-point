@@ -175,6 +175,7 @@ func (s *Server) initializeRoutes() {
 
 	//Product
 	s.Router.GET("/products", s.GetProducts)
+	s.Router.GET("/products/active", s.GetActiveProducts)
 	product := s.Router.Group("/product")
 	{
 		product.GET("/:id", s.GetProduct)
@@ -184,6 +185,7 @@ func (s *Server) initializeRoutes() {
 
 	//Product Group
 	s.Router.GET("/product-groups", s.GetProductGroups)
+	s.Router.GET("/product-groups/active", s.GetActiveProducts)
 	productGroup := s.Router.Group("/product-group")
 	{
 		productGroup.GET("/:id", s.GetProductGroup)

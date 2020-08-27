@@ -27,9 +27,9 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 	if err != nil {
 		log.Printf("Cannot connect to %s database", Dbdriver)
 		log.Fatal("This is the error:", err)
-	} else {
-		log.Printf("The service has been connected to the %s database", Dbdriver)
 	}
+
+	log.Printf("The service has been connected to the %s database", Dbdriver)
 
 	gin.SetMode(gin.ReleaseMode)
 	server.Router = gin.Default()

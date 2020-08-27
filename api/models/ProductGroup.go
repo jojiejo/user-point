@@ -15,6 +15,7 @@ type ProductGroup struct {
 	Name      string     `gorm:"not null;size:100;column:product_group_name" json:"name"`
 	StartedAt *time.Time `json:"started_at"`
 	EndedAt   *time.Time `json:"ended_at"`
+	Product   []Product  `gorm:"many2many:Product_ProductGroup_Relation;association_autoupdate:false;foreignkey:ID;association_foreignkey:ID;association_jointable_foreignkey:product_id;jointable_foreignkey:product_group_id;" json:"product"`
 	CreatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
@@ -53,6 +54,7 @@ func (pg *ProductGroup) FindProductGroups(db *gorm.DB) (*[]ProductGroup, error) 
 	pgs := []ProductGroup{}
 	err = db.Debug().Model(&ProductGroup{}).
 		Order("product_group_id, created_at desc").
+		Preload("Product").
 		Find(&pgs).Error
 
 	if err != nil {
@@ -62,11 +64,24 @@ func (pg *ProductGroup) FindProductGroups(db *gorm.DB) (*[]ProductGroup, error) 
 	return &pgs, nil
 }
 
+func (pg *ProductGroup) FindActiveProductGroups(db *gorm.DB) (*[]ProductGroup, error) {
+	productGroups := []ProductGroup{}
+	err := db.Debug().Raw("EXEC spAPI_ProductGroup_GetActive").
+		Preload("Product").
+		Scan(&productGroups).Error
+	if err != nil {
+		return &[]ProductGroup{}, err
+	}
+
+	return &productGroups, nil
+}
+
 func (pg *ProductGroup) FindProductGroupByID(db *gorm.DB, productGroupID uint64) (*ProductGroup, error) {
 	var err error
 	err = db.Debug().Model(&ProductGroup{}).Unscoped().
 		Where("product_group_id = ?", productGroupID).
 		Order("created_at desc").
+		Preload("Product").
 		Take(&pg).Error
 
 	if err != nil {
@@ -106,6 +121,12 @@ func (pg *ProductGroup) UpdateProductGroup(db *gorm.DB) (*ProductGroup, error) {
 			"updated_at":         dateTimeNow,
 		}).Error
 
+	if err != nil {
+		return &ProductGroup{}, err
+	}
+
+	//Update product
+	err = db.Debug().Model(&pg).Where("product_group_id = ?", pg.ID).Association("Product").Replace(pg.Product).Error
 	if err != nil {
 		return &ProductGroup{}, err
 	}

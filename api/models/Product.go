@@ -75,6 +75,16 @@ func (p *Product) FindProducts(db *gorm.DB) (*[]Product, error) {
 	return &ps, nil
 }
 
+func (p *Product) FindActiveProducts(db *gorm.DB) (*[]Product, error) {
+	products := []Product{}
+	err := db.Debug().Raw("EXEC spAPI_Product_GetActive").Scan(&products).Error
+	if err != nil {
+		return &[]Product{}, err
+	}
+
+	return &products, nil
+}
+
 func (p *Product) FindProductByID(db *gorm.DB, productID uint64) (*Product, error) {
 	var err error
 	err = db.Debug().Model(&Product{}).Unscoped().

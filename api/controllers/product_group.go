@@ -34,6 +34,29 @@ func (server *Server) GetProductGroups(c *gin.Context) {
 	log.Printf("End => Get Product Groups")
 }
 
+func (server *Server) GetActiveProductGroup(c *gin.Context) {
+	log.Printf("Begin => Get Active Product Group")
+
+	productGroup := models.ProductGroup{}
+	productGroups, err := productGroup.FindActiveProductGroups(server.DB)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["no_product_group"] = "No product group found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	stringifiedProductGroups, _ := json.Marshal(productGroups)
+	log.Printf("Get Product Groups : ", string(stringifiedProductGroups))
+	c.JSON(http.StatusOK, gin.H{
+		"response": productGroups,
+	})
+
+	log.Printf("End => Get Active Product Group")
+}
+
 func (server *Server) GetProductGroup(c *gin.Context) {
 	log.Printf("Begin => Get Product Group")
 	productGroupID := c.Param("id")

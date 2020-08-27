@@ -34,6 +34,29 @@ func (server *Server) GetProducts(c *gin.Context) {
 	log.Printf("End => Get Products")
 }
 
+func (server *Server) GetActiveProducts(c *gin.Context) {
+	log.Printf("Begin => Get Active Products")
+
+	product := models.Product{}
+	products, err := product.FindActiveProducts(server.DB)
+	if err != nil {
+		log.Printf(err.Error())
+		errList["no_product"] = "No product found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	stringifiedProduct, _ := json.Marshal(products)
+	log.Println("Get Active Products : ", string(stringifiedProduct))
+	c.JSON(http.StatusOK, gin.H{
+		"response": products,
+	})
+
+	log.Printf("End => Get Active Products")
+}
+
 func (server *Server) GetProduct(c *gin.Context) {
 	log.Printf("Begin => Get Product")
 	productID := c.Param("id")
