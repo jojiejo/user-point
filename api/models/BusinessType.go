@@ -98,9 +98,10 @@ func (bt *BusinessType) UpdateBusinessType(db *gorm.DB) (*BusinessType, error) {
 	//Update the data
 	err = db.Debug().Model(&bt).Updates(
 		map[string]interface{}{
-			"code":       bt.Code,
-			"name":       bt.Name,
-			"updated_at": dateTimeNow,
+			"code":                          bt.Code,
+			"name":                          bt.Name,
+			"updated_at":                    dateTimeNow,
+			"line_off_business_description": bt.LineOffBusinessDescription,
 		}).Error
 
 	if err != nil {
