@@ -1,0 +1,65 @@
+{
+    "response": {
+        "data": [
+            {
+                "batch_no": 3,
+                "transaction_type": "Online",
+                "transaction_date": "02/05/2020",
+                "transaction_time": "09:12:00",
+                "card_id": "0A2ADC2BEF377D51EDD7573A04D44BE6",
+                "reference_no": "12312315",
+                "product": "Shell Regular",
+                "volume": 2.38,
+                "ppn": 200,
+                "amount": 20000
+            },
+            {
+                "batch_no": 12,
+                "transaction_type": "Online",
+                "transaction_date": "02/05/2020",
+                "transaction_time": "12:55:11",
+                "card_id": "0A2ADC2BEF377D51EDD7573A04D44BE6",
+                "reference_no": "12312316",
+                "product": "Shell Regular",
+                "volume": 35.29,
+                "ppn": 2946,
+                "amount": 296436
+            },
+            {
+                "batch_no": 16,
+                "transaction_type": "Online",
+                "transaction_date": "02/05/2020",
+                "transaction_time": "13:36:47",
+                "card_id": "0A2ADC2BEF377D51EDD7573A04D44BE6",
+                "reference_no": "12312317",
+                "product": "Shell Regular",
+                "volume": 44.04,
+                "ppn": 3700,
+                "amount": 370000
+            },
+            {
+                "batch_no": 16,
+                "transaction_type": "Online",
+                "transaction_date": "02/05/2020",
+                "transaction_time": "15:13:04",
+                "card_id": "59B44D0B19FF5FBFBC301BF2D31CDC26",
+                "reference_no": "12312318",
+                "product": "VPower",
+                "volume": 31.74,
+                "ppn": 3000,
+                "amount": 300000
+            }
+        ],
+        "document_name": "Daily Statement Report",
+        "document_number": 2,
+        "sold_to_number": "12228856",
+        "sold_to_name": "Dar Test Retailer",
+        "sold_to_address": "Jl. Gatot Subroto no. 15 NO. 9 RT/RW 003/04 JATIWARING, PONDOK GEDE",
+        "ship_to_number": "1090923125",
+        "ship_to_name": "SHELL JATIWARINGIN-4 JAKARTA",
+        "ship_to_address": "JL. SETIA 1C NO. 9 RT/RW 003/04 JATIWARING, PONDOK GEDE",
+        "period": "20200502",
+        "total_volume": 113.45,
+        "total_amount": 986436.0
+    }
+}
