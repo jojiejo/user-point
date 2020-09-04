@@ -260,6 +260,26 @@ func (s *Server) initializeRoutes() {
 		industryClassification.PUT("/:id", s.UpdateIndustryClassification)
 	}
 
+	//Driver - Card Holder
+	s.Router.GET("/drivers", s.GetDrivers)
+	s.Router.GET("/payer/:id/drivers", s.GetDriverByPayer)
+	driver := s.Router.Group("/driver")
+	{
+		driver.GET(":/id", s.GetDriver)
+		driver.POST(":/id", s.CreateDriver)
+		driver.PUT(":/id", s.UpdateDriver)
+	}
+
+	//Vehicle
+	s.Router.GET("/vehicles", s.GetVehicles)
+	s.Router.GET("/payer/:id/vehicles", s.GetVehicleByPayer)
+	vehicle := s.Router.Group("/driver")
+	{
+		vehicle.GET(":/id", s.GetVehicle)
+		vehicle.POST(":/id", s.CreateVehicle)
+		vehicle.PUT(":/id", s.UpdateVehicle)
+	}
+
 	//Rebate
 	s.Router.GET("/rebate/calculation-types", s.GetRebateCalculationTypes)
 	s.Router.GET("/rebate/types", s.GetRebateTypes)
