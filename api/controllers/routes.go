@@ -280,6 +280,12 @@ func (s *Server) initializeRoutes() {
 		vehicle.PUT(":/id", s.UpdateVehicle)
 	}
 
+	//Driver Card
+	s.Router.POST("/driver-cards", s.GenerateDriverCards)
+
+	//Vehicle Card
+	s.Router.POST("/vehicle-cards", s.GenerateDriverCards)
+
 	//Rebate
 	s.Router.GET("/rebate/calculation-types", s.GetRebateCalculationTypes)
 	s.Router.GET("/rebate/types", s.GetRebateTypes)
