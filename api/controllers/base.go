@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-    "github.com/jlaffaye/ftp"
+	"github.com/jlaffaye/ftp"
 
 	"fleethub.shell.co.id/api/middlewares"
 
@@ -15,19 +15,21 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mssql" //Ms. SQL driver
 )
 
+//Server => Struct of Server Attributes
 type Server struct {
-	DB     	*gorm.DB
-	Router 	*gin.Engine
+	DB      *gorm.DB
+	Router  *gin.Engine
 	FtpConn *ftp.ServerConn
 }
 
 var errList = make(map[string]string)
 
+//Initialize => Init server
 func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) {
 	var err error
-    var ftpHost = os.Getenv("FTP_HOST")
+	var ftpHost = os.Getenv("FTP_HOST")
 
-    // INITIALIZE DB CONNECTION
+	// INITIALIZE DB CONNECTION
 	DBURL := fmt.Sprintf("sqlserver://%s:%s@%s:%s?database=%s", DbUser, DbPassword, DbHost, DbPort, DbName)
 	server.DB, err = gorm.Open(Dbdriver, DBURL)
 	if err != nil {
@@ -36,19 +38,19 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 	}
 	log.Printf("The service has been connected to the %s database", Dbdriver)
 
-    // INITIALIZE FTP CONNECTION
-    server.FtpConn, err = ftp.Dial(ftpHost)
-    if err != nil {
-        log.Println(err.Error())
-    }
-    log.Println("FTP Connection Success")
+	// INITIALIZE FTP CONNECTION
+	server.FtpConn, err = ftp.Dial(ftpHost)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	log.Println("FTP Connection Success")
 
-    // FTP LOGIN
-    err = server.FtpConn.Login(os.Getenv("FTP_USER"), os.Getenv("FTP_PASSWORD"))
-    if err != nil {
-        log.Println(err.Error())
-    }
-    log.Println("FTP Login Success")
+	// FTP LOGIN
+	err = server.FtpConn.Login(os.Getenv("FTP_USER"), os.Getenv("FTP_PASSWORD"))
+	if err != nil {
+		log.Println(err.Error())
+	}
+	log.Println("FTP Login Success")
 
 	gin.SetMode(gin.ReleaseMode)
 	server.Router = gin.Default()
@@ -57,6 +59,7 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 	server.initializeRoutes()
 }
 
+//Run => Run server
 func (server *Server) Run(addr string) {
 	log.Fatal(http.ListenAndServe(addr, server.Router))
 }

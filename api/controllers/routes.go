@@ -265,26 +265,29 @@ func (s *Server) initializeRoutes() {
 	s.Router.GET("/payer/:id/drivers", s.GetDriverByPayer)
 	driver := s.Router.Group("/driver")
 	{
-		driver.GET(":/id", s.GetDriver)
-		driver.POST(":/id", s.CreateDriver)
-		driver.PUT(":/id", s.UpdateDriver)
+		driver.GET("/:id", s.GetDriver)
+		driver.POST("/", s.CreateDriver)
+		driver.PUT("/:id", s.UpdateDriver)
 	}
 
 	//Vehicle
 	s.Router.GET("/vehicles", s.GetVehicles)
 	s.Router.GET("/payer/:id/vehicles", s.GetVehicleByPayer)
-	vehicle := s.Router.Group("/driver")
+	vehicle := s.Router.Group("/vehicle")
 	{
-		vehicle.GET(":/id", s.GetVehicle)
-		vehicle.POST(":/id", s.CreateVehicle)
-		vehicle.PUT(":/id", s.UpdateVehicle)
+		vehicle.GET("/:id", s.GetVehicle)
+		vehicle.POST("/:id", s.CreateVehicle)
+		vehicle.PUT("/:id", s.UpdateVehicle)
 	}
 
 	//Driver Card
-	s.Router.POST("/driver-cards", s.GenerateDriverCards)
+	//s.Router.POST("/driver-cards", s.GenerateDriverCards)
 
 	//Vehicle Card
-	s.Router.POST("/vehicle-cards", s.GenerateDriverCards)
+	//s.Router.POST("/vehicle-cards", s.GenerateVehicleCards)
+
+	//Bearer Card
+	s.Router.POST("/bearer-cards", s.GenerateBearerCards)
 
 	//Rebate
 	s.Router.GET("/rebate/calculation-types", s.GetRebateCalculationTypes)

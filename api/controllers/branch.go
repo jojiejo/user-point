@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//GetBranchByCCID => Get Branch By CCID
 func (server *Server) GetBranchByCCID(c *gin.Context) {
 	CCID := c.Param("id")
 	convertedCCID, err := strconv.ParseUint(CCID, 10, 64)
@@ -38,6 +39,7 @@ func (server *Server) GetBranchByCCID(c *gin.Context) {
 	})
 }
 
+//GetBranch => Get Branch by Branch ID
 func (server *Server) GetBranch(c *gin.Context) {
 	log.Printf("Begin => Get Specific Branch")
 	branchID := c.Param("id")
@@ -68,6 +70,7 @@ func (server *Server) GetBranch(c *gin.Context) {
 	})
 }
 
+//UpdateCardGroupFlagInSelectedBranch => Update Card Group Flag In Selected Branch
 func (server *Server) UpdateCardGroupFlagInSelectedBranch(c *gin.Context) {
 	log.Printf("Begin => Update Card Group Flag In Selected Branch")
 	errList = map[string]string{}
@@ -167,6 +170,7 @@ func (server *Server) UpdateCardGroupFlagInSelectedBranch(c *gin.Context) {
 	log.Printf("End => Update Card Group Flag In Selected Branch")
 }
 
+//GetTransactionInvoiceByBranch => Get Transaction Invoice By Branch
 func (server *Server) GetTransactionInvoiceByBranch(c *gin.Context) {
 	log.Printf("Begin => Get Transaction Invoice By Branch")
 	subCorporateID := c.Param("id")
@@ -203,7 +207,7 @@ func (server *Server) GetTransactionInvoiceByBranch(c *gin.Context) {
 	}
 
 	stringifiedTIBB, _ := json.Marshal(tibbReceived)
-	log.Printf("Get Transaction Invoice by Payer : ", string(stringifiedTIBB))
+	log.Println("Get Transaction Invoice by Payer : ", string(stringifiedTIBB))
 	c.JSON(http.StatusOK, gin.H{
 		"response": tibbReceived,
 	})
@@ -211,6 +215,7 @@ func (server *Server) GetTransactionInvoiceByBranch(c *gin.Context) {
 	log.Printf("End => Get Transaction Invoice By Branch")
 }
 
+//GetFeeInvoiceByBranch => Get Fee Invoice By Branch
 func (server *Server) GetFeeInvoiceByBranch(c *gin.Context) {
 	log.Printf("Begin => Get Fee Invoice By Branch")
 	subCorporateID := c.Param("id")
@@ -247,7 +252,7 @@ func (server *Server) GetFeeInvoiceByBranch(c *gin.Context) {
 	}
 
 	stringifiedFIBB, _ := json.Marshal(tibbReceived)
-	log.Printf("Get Transaction Invoice by Payer : ", string(stringifiedFIBB))
+	log.Println("Get Transaction Invoice by Payer : ", string(stringifiedFIBB))
 	c.JSON(http.StatusOK, gin.H{
 		"response": tibbReceived,
 	})

@@ -15,6 +15,7 @@ type Payer struct {
 	CCID                     uint64                 `gorm:"primary_key;auto_increment" json:"cc_id"`
 	ContractNumber           string                 `gorm:"not null" json:"contract_number"`
 	Alias                    string                 `gorm:"not null" json:"alias"`
+	BankCode                 string                 `gorm:"not null" json:"bank_code"`
 	TelematicSubscriptionFee *bool                  `gorm:"not null" json:"telematic_subscription_fee"`
 	PaperInvoice             *bool                  `gorm:"not null" json:"paper_invoice"`
 	UseInvoiceAddress        *bool                  `gorm:"not null" json:"use_invoice_address"`

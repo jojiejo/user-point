@@ -44,8 +44,8 @@ type InvoiceNumberByBranch struct {
 type InvoiceSubAccountSummary struct {
 	CCID           int     `json:"cc_id"`
 	SubCorporateID int     `json:"sub_corporate_id"`
-	ContactName_3  string  `json:"contact_name_3"`
-	ContactName_4  string  `json:"contact_name_4"`
+	ContactName3   string  `json:"contact_name_3"`
+	ContactName4   string  `json:"contact_name_4"`
 	SaleAmount     float32 `json:"sale_amount"`
 	IssuedAt       string  `json:"issued_at"`
 	DueDate        string  `json:"due_date"`

@@ -220,7 +220,7 @@ func (bcadhf *BulkChargeAdHocFee) BulkCheckAdHocFee(db *gorm.DB) (*BulkChargeAdH
 		var convertedMCMSID int
 		var convertedLineNumber string
 
-		for i, _ := range bcadhf.FeeCollection {
+		for i := range bcadhf.FeeCollection {
 			convertedLineNumber = strconv.Itoa(i + 1)
 			convertedMCMSID, err = strconv.Atoi(bcadhf.FeeCollection[i].MCMSID)
 			if err != nil {

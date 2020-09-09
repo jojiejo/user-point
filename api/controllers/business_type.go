@@ -26,7 +26,7 @@ func (server *Server) GetBusinessTypes(c *gin.Context) {
 	}
 
 	stringifiedBusinessTypes, _ := json.Marshal(bts)
-	log.Printf("Get Business Types : ", string(stringifiedBusinessTypes))
+	log.Println("Get Business Types : ", string(stringifiedBusinessTypes))
 	c.JSON(http.StatusOK, gin.H{
 		"response": bts,
 	})
@@ -59,7 +59,7 @@ func (server *Server) GetBusinessType(c *gin.Context) {
 	}
 
 	stringifiedBusinessType, _ := json.Marshal(receivedBusinessType)
-	log.Printf("Get Business Type : ", string(stringifiedBusinessType))
+	log.Println("Get Business Type : ", string(stringifiedBusinessType))
 	c.JSON(http.StatusOK, gin.H{
 		"response": receivedBusinessType,
 	})

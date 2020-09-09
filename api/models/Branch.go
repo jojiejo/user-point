@@ -62,7 +62,7 @@ func (branch *ShortenedBranch) FindBranchByCCID(db *gorm.DB, CCID uint64) (*[]Sh
 	}
 
 	if len(branches) > 0 {
-		for i, _ := range branches {
+		for i := range branches {
 			customerDataErr := db.Debug().Model(&Payer{}).Unscoped().Where("mcms_id = ?", branches[i].MCMSID).Order("mcms_id desc").Take(&branches[i].GSAPCustomerMasterData).Error
 			if customerDataErr != nil {
 				return &[]ShortenedBranch{}, err

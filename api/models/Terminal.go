@@ -123,7 +123,7 @@ func (terminal *Terminal) FindTerminalOverview(db *gorm.DB, retailerID uint64, s
 	}
 
 	if len(terminals) > 0 {
-		for i, _ := range terminals {
+		for i := range terminals {
 			siteErr := db.Debug().Model(&Site{}).Unscoped().Where("id = ?", terminals[i].SiteID).Order("id desc").Take(&terminals[i].Site).Error
 			if siteErr != nil {
 				return &[]Terminal{}, err

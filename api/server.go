@@ -33,9 +33,9 @@ func Run() {
 	err = godotenv.Load()
 	if err != nil {
 		log.Fatalf("Error populating ENV, %v", err)
-	} else {
-		fmt.Println("ENV values has been populated successfully")
 	}
+
+	fmt.Println("ENV values has been populated successfully")
 
 	server.Initialize(os.Getenv("DB_DRIVER"), os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_PORT"), os.Getenv("DB_HOST"), os.Getenv("DB_NAME"))
 

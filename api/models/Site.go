@@ -194,7 +194,7 @@ func (site *Site) FindSiteHistoryByID(db *gorm.DB, originalRetailerID uint64) (*
 	}
 
 	if len(sites) > 0 {
-		for i, _ := range sites {
+		for i := range sites {
 			err := db.Debug().Model(&City{}).Unscoped().Where("id = ?", sites[i].CityID).Order("id desc").Take(&sites[i].City).Error
 			if err != nil {
 				return &[]Site{}, err

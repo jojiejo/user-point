@@ -12,7 +12,7 @@ import (
 type Vehicle struct {
 	ID        uint64     `gorm:"primary_key;auto_increment;column:v_id" json:"id"`
 	VehicleID string     `gorm:"not null;" json:"vehicle_id"`
-	CCID      uint64     `gorm:"not null;" json:"vehicle_id"`
+	CCID      uint64     `gorm:"not null;" json:"cc_id"`
 	CreatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`

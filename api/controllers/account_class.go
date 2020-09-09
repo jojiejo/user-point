@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+//GetAccountClasses => Get Account Classes
 func (server *Server) GetAccountClasses(c *gin.Context) {
 	log.Printf("Begin => Get Account Classes")
 
@@ -26,7 +27,7 @@ func (server *Server) GetAccountClasses(c *gin.Context) {
 	}
 
 	stringifiedAccountClasses, _ := json.Marshal(acs)
-	log.Printf("Get Sales Reps : ", string(stringifiedAccountClasses))
+	log.Println("Get Account Class : ", string(stringifiedAccountClasses))
 	c.JSON(http.StatusOK, gin.H{
 		"response": acs,
 	})
@@ -34,6 +35,7 @@ func (server *Server) GetAccountClasses(c *gin.Context) {
 	log.Printf("End => Get Account Classes")
 }
 
+//GetAccountClass => Get Account Class
 func (server *Server) GetAccountClass(c *gin.Context) {
 	log.Printf("Begin => Get Account Class")
 	acID := c.Param("id")
@@ -59,7 +61,7 @@ func (server *Server) GetAccountClass(c *gin.Context) {
 	}
 
 	stringifiedAccountClass, _ := json.Marshal(receivedAccountClass)
-	log.Printf("Get Sales Rep : ", string(stringifiedAccountClass))
+	log.Println("Get Sales Rep : ", string(stringifiedAccountClass))
 	c.JSON(http.StatusOK, gin.H{
 		"response": receivedAccountClass,
 	})
@@ -67,6 +69,7 @@ func (server *Server) GetAccountClass(c *gin.Context) {
 	log.Printf("End => Get Account Class")
 }
 
+//CreateAccountClass => Create Account Class
 func (server *Server) CreateAccountClass(c *gin.Context) {
 	log.Printf("Begin => Create Account Class")
 	errList = map[string]string{}
@@ -118,6 +121,7 @@ func (server *Server) CreateAccountClass(c *gin.Context) {
 	log.Printf("End => Create Account Class")
 }
 
+//UpdateAccountClass => Update Account Class
 func (server *Server) UpdateAccountClass(c *gin.Context) {
 	log.Printf("Begin => Update Account Class")
 
