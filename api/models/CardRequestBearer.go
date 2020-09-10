@@ -9,16 +9,16 @@ import (
 
 //CardBearerRequest => Struct to contain Card Bearer Request
 type CardRequestBearer struct {
-	Batch          uint64    `json:"batch"`
+	Batch          int       `json:"batch"`
 	ExpDate        string    `json:"exp_date"`
-	CardTypeID     uint64    `json:"card_type_id"`
+	CardTypeID     int       `json:"card_type_id"`
 	CardTypePrefix string    `json:"card_type_prefix"`
 	CardTypeSuffix string    `json:"card_type_suffix"`
-	CardGroupID    uint64    `json:"card_group_id"`
+	CardGroupID    int       `json:"card_group_id"`
 	ResProfileID   int       `json:"res_profile_id"`
-	SubCorporateID uint64    `json:"sub_corporate_id"`
-	CCID           uint64    `json:"cc_id"`
-	CardCount      uint64    `json:"card_count"`
+	SubCorporateID int       `json:"sub_corporate_id"`
+	CCID           int       `json:"cc_id"`
+	CardCount      int       `json:"card_count"`
 	RequestedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"requested_at"`
 }
 

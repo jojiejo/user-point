@@ -14,6 +14,8 @@ type BusinessType struct {
 	Code                       string     `gorm:"not null;" json:"code"`
 	Name                       string     `gorm:"not null;size:100;" json:"name"`
 	LineOffBusinessDescription string     `gorm:"not null;" json:"line_off_business_description"`
+	StartedAt                  *time.Time `json:"started_at"`
+	EndedAt                    *time.Time `json:"ended_at"`
 	CreatedAt                  time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt                  time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt                  *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
@@ -101,6 +103,8 @@ func (bt *BusinessType) UpdateBusinessType(db *gorm.DB) (*BusinessType, error) {
 			"code":                          bt.Code,
 			"name":                          bt.Name,
 			"updated_at":                    dateTimeNow,
+			"started_at":                    bt.StartedAt,
+			"ended_at":                      bt.EndedAt,
 			"line_off_business_description": bt.LineOffBusinessDescription,
 		}).Error
 

@@ -15,7 +15,7 @@ import (
 )
 
 //Encrypt => Encrypt given string using AES ECB
-func Encrypt(plainText, key string) ([]byte, error) {
+func Encrypt(plainText string) ([]byte, error) {
 	packedKey, err := hex.DecodeString(os.Getenv("CARD_KEY"))
 	if err != nil {
 		return nil, err
@@ -24,6 +24,7 @@ func Encrypt(plainText, key string) ([]byte, error) {
 	plainText = PadRight(plainText, "F", 32)
 	packedPlainText, err := hex.DecodeString(plainText)
 	if err != nil {
+		fmt.Println(packedPlainText)
 		return nil, err
 	}
 
@@ -83,7 +84,7 @@ func PadLeft(str, pad string, lenght int) string {
 	for {
 		str = pad + str
 		if len(str) > lenght {
-			return str[0:lenght]
+			return str[1 : lenght+1]
 		}
 	}
 }

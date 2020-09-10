@@ -4,10 +4,14 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 
 	"fleethub.shell.co.id/api/models"
+	"fleethub.shell.co.id/api/security"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 )
@@ -46,7 +50,7 @@ func (server *Server) GenerateBearerCards(c *gin.Context) {
 
 	//Load Res Profile ID
 	cg := models.CardGroup{}
-	receivedCardGroup, err := cg.FindCardGroupByID(server.DB, crb.CardGroupID)
+	receivedCardGroup, err := cg.FindCardGroupByID(server.DB, uint64(crb.CardGroupID))
 	if err != nil {
 		log.Printf(err.Error())
 		errList["no_card_group"] = "No card group found"
@@ -60,7 +64,7 @@ func (server *Server) GenerateBearerCards(c *gin.Context) {
 
 	//Load Card Prefix & Suffix
 	ct := models.CardType{}
-	receivedCardType, err := ct.FindCardTypeByID(server.DB, crb.CardTypeID)
+	receivedCardType, err := ct.FindCardTypeByID(server.DB, uint64(crb.CardTypeID))
 	if err != nil {
 		if !gorm.IsRecordNotFoundError(err) {
 			log.Printf(err.Error())
@@ -77,19 +81,21 @@ func (server *Server) GenerateBearerCards(c *gin.Context) {
 
 	//Load Card Number
 	type CardNumber struct {
-		LastCardNo uint64 `json:"last_card_no"`
-		NewCard    uint64 `json:"new_card"`
+		LastCardNo int `json:"last_card_no"`
 	}
 	cardNumber := CardNumber{}
-	err = server.DB.Debug().
+	cardNumberErr := server.DB.Debug().
 		Table("mstCardNumber").
 		Select("last_card_no").
-		Where("card_type_id = ? AND country_code = ? AND bank_code = ?", crb.CardTypeID, countryCode, bankCode).
+		Where("card_type_id = ? AND country_code = ? AND bank_code = ?",
+			crb.CardTypeID,
+			countryCode,
+			bankCode).
 		Order("last_card_no desc").
 		First(&cardNumber).
 		Error
-	if err != nil {
-		if !gorm.IsRecordNotFoundError(err) {
+	if cardNumberErr != nil {
+		if !gorm.IsRecordNotFoundError(cardNumberErr) {
 			log.Printf(err.Error())
 			errList["no_card_number_found"] = "No card number found"
 			c.JSON(http.StatusNotFound, gin.H{
@@ -100,26 +106,26 @@ func (server *Server) GenerateBearerCards(c *gin.Context) {
 	}
 
 	//Card number conditioning
+	var nextCardNumber int
 	if gorm.IsRecordNotFoundError(err) {
-		cardNumber.NewCard = 1
+		nextCardNumber = 1
 	} else {
-		cardNumber.NewCard = cardNumber.LastCardNo + 1
+		nextCardNumber = cardNumber.LastCardNo + 1
 	}
 
 	//Load Batch Inventory
 	type BatchNumber struct {
-		LastBatch uint64 `json:"last_batch"`
-		NewBatch  uint64 `json:"new_batch"`
+		LastBatch int `json:"last_batch"`
 	}
 	batchNumber := BatchNumber{}
-	err = server.DB.Debug().
+	batchNumberErr := server.DB.Debug().
 		Table("mstCardInventory").
 		Select("last_batch").
 		Where("cc_id = ?", crb.CCID).
 		Order("last_batch desc").
 		First(&batchNumber).
 		Error
-	if err != nil {
+	if batchNumberErr != nil {
 		if !gorm.IsRecordNotFoundError(err) {
 			log.Printf(err.Error())
 			errList["no_batch_found"] = "No batch found"
@@ -131,90 +137,99 @@ func (server *Server) GenerateBearerCards(c *gin.Context) {
 	}
 
 	//Batch number conditioning
-	if gorm.IsRecordNotFoundError(err) {
-		batchNumber.NewBatch = 1
+	var nextBatch int
+	if gorm.IsRecordNotFoundError(batchNumberErr) {
+		nextBatch = 1
 	} else {
 		if crb.Batch == 0 {
-			batchNumber.NewBatch = batchNumber.LastBatch + 1
+			nextBatch = batchNumber.LastBatch + 1
 		} else {
-			batchNumber.NewBatch = crb.Batch
+			nextBatch = crb.Batch
 		}
 	}
 
-	/*	crb.Prepare()
-		errorMessages := ac.Validate()
-		if len(errorMessages) > 0 {
-			log.Println(errorMessages)
-			errList = errorMessages
-			c.JSON(http.StatusUnprocessableEntity, gin.H{
-				"error": errList,
-			})
-			return
+	cardInsertionTrx := server.DB.Begin()
+	var generatedCards []string
+	for i := 1; i <= crb.CardCount; i++ {
+		cardID := crb.CardTypePrefix +
+			crb.CardTypeSuffix +
+			countryCode +
+			bankCode +
+			security.PadLeft(strconv.Itoa(nextCardNumber), "0", 8)
+
+		validCard := security.GenerateLuhn(cardID)
+		encryptedCard, _ := security.Encrypt(validCard)
+		validCard = strings.ToUpper(security.Bin2hex(encryptedCard)[0:32])
+
+		cvv := rand.Intn(999-100) + 100
+		validCvv := strconv.Itoa(cvv)
+
+		err = server.DB.Debug().
+			Table("mstMemberCard").
+			Where("card_id = ?", encryptedCard).
+			Order("card_id desc").
+			Error
+		if err != nil {
+			if !gorm.IsRecordNotFoundError(err) {
+				log.Printf(err.Error())
+				errList["no_card"] = "No card found"
+				c.JSON(http.StatusNotFound, gin.H{
+					"error": errList,
+				})
+				return
+			}
 		}
 
-		createdAccountClass, err := ac.CreateAccountClass(server.DB)
-		if err != nil {
-			log.Printf(err.Error())
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error": err,
-			})
-			return
+		if gorm.IsRecordNotFoundError(err) {
+			convertedBankCode, _ := strconv.Atoi(bankCode)
+			convertedCountryCode, _ := strconv.Atoi(countryCode)
+			memberCard := models.MemberCard{
+				CardID:           validCard,
+				ExpDate:          crb.ExpDate,
+				CVV:              validCvv,
+				BankCode:         convertedBankCode,
+				CountryCode:      convertedCountryCode,
+				Status:           "INACTIVE",
+				Batch:            nextBatch,
+				CardGroupID:      crb.CardGroupID,
+				CardHolderTypeID: 1,
+				CardTypeID:       crb.CardTypeID,
+				CardProfileID:    crb.ResProfileID,
+			}
+
+			_, err := memberCard.CreateMemberCard(server.DB)
+			if err != nil {
+				cardInsertionTrx.Rollback()
+				log.Printf(err.Error())
+				errList["card_generation"] = "Card generation failed"
+				c.JSON(http.StatusNotFound, gin.H{
+					"error": errList,
+				})
+				return
+			}
+
+			//If save card error => DB rollback, break
+			generatedCards = append(generatedCards, cardID)
+			nextCardNumber++
+
+		} else {
+			nextCardNumber++
 		}
-		c.JSON(http.StatusCreated, gin.H{
-			"response": createdAccountClass,
-		})*/
+	}
+
+	cardInsertionTrx.Commit()
+
+	if gorm.IsRecordNotFoundError(cardNumberErr) {
+		//Make new card number data with latest nextCardNumber -1
+	} else {
+		//Update card number with latest nextCardNumber
+	}
+
+	if gorm.IsRecordNotFoundError(batchNumberErr) {
+		//Make new batch data with latest nextCardNumber -1
+	} else {
+		//Update batch with latest nextCardNumber
+	}
 
 	log.Printf("End => Generate Bearer Card")
-}
-
-//GenerateVehicleCard => Generate Vehicle Card
-func (server *Server) GenerateVehicleCard(c *gin.Context) {
-	log.Printf("Begin => Generate Vehicle Card")
-	errList = map[string]string{}
-
-	body, err := ioutil.ReadAll(c.Request.Body)
-	if err != nil {
-		log.Printf(err.Error())
-		errList["invalid_body"] = "Unable to get request"
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": errList,
-		})
-		return
-	}
-
-	ac := models.AccountClass{}
-	err = json.Unmarshal(body, &ac)
-	if err != nil {
-		log.Printf(err.Error())
-		errList["unmarshal_error"] = "Cannot unmarshal body"
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": errList,
-		})
-		return
-	}
-
-	ac.Prepare()
-	errorMessages := ac.Validate()
-	if len(errorMessages) > 0 {
-		log.Println(errorMessages)
-		errList = errorMessages
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"error": errList,
-		})
-		return
-	}
-
-	createdAccountClass, err := ac.CreateAccountClass(server.DB)
-	if err != nil {
-		log.Printf(err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err,
-		})
-		return
-	}
-	c.JSON(http.StatusCreated, gin.H{
-		"response": createdAccountClass,
-	})
-
-	log.Printf("End => Generate Vehicle Class")
 }
