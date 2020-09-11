@@ -68,7 +68,7 @@ func (server *Server) GetDriver(c *gin.Context) {
 }
 
 func (server *Server) GetDriverByPayer(c *gin.Context) {
-	log.Printf("Begin => Get Driver")
+	log.Printf("Begin => Get Driver By Payer")
 	ccID := c.Param("id")
 	convertedCCID, err := strconv.ParseUint(ccID, 10, 64)
 	if err != nil {
@@ -92,12 +92,12 @@ func (server *Server) GetDriverByPayer(c *gin.Context) {
 	}
 
 	stringifiedDriver, _ := json.Marshal(receivedDriver)
-	log.Printf("Get Driver : ", string(stringifiedDriver))
+	log.Println("Get Driver by Payer: ", string(stringifiedDriver))
 	c.JSON(http.StatusOK, gin.H{
 		"response": receivedDriver,
 	})
 
-	log.Printf("End => Get Driver")
+	log.Printf("End => Get Driver By Payer")
 }
 
 func (server *Server) CreateDriver(c *gin.Context) {

@@ -70,18 +70,19 @@ func (d *Driver) FindDriverByID(db *gorm.DB, dID uint64) (*Driver, error) {
 	return d, nil
 }
 
-func (d *Driver) FindDriverByCCID(db *gorm.DB, ccID uint64) (*Driver, error) {
+func (d *Driver) FindDriverByCCID(db *gorm.DB, ccID uint64) (*[]Driver, error) {
 	var err error
+	ds := []Driver{}
 	err = db.Debug().Model(&Driver{}).Unscoped().
 		Where("card_holder_id = ?", ccID).
 		Order("created_at desc").
-		Take(&d).Error
+		Take(&ds).Error
 
 	if err != nil {
-		return &Driver{}, err
+		return &ds, err
 	}
 
-	return d, nil
+	return &ds, nil
 }
 
 func (d *Driver) CreateDriver(db *gorm.DB) (*Driver, error) {

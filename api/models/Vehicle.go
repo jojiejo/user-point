@@ -63,18 +63,19 @@ func (v *Vehicle) FindVehicleByID(db *gorm.DB, vID uint64) (*Vehicle, error) {
 	return v, nil
 }
 
-func (v *Vehicle) FindVehicleByCCID(db *gorm.DB, ccID uint64) (*Vehicle, error) {
+func (v *Vehicle) FindVehicleByCCID(db *gorm.DB, ccID uint64) (*[]Vehicle, error) {
 	var err error
+	vs := []Vehicle{}
 	err = db.Debug().Model(&Vehicle{}).Unscoped().
 		Where("cc_id = ?", ccID).
 		Order("created_at desc").
-		Take(&v).Error
+		Take(&vs).Error
 
 	if err != nil {
-		return &Vehicle{}, err
+		return &vs, err
 	}
 
-	return v, nil
+	return &vs, nil
 }
 
 func (v *Vehicle) CreateVehicle(db *gorm.DB) (*Vehicle, error) {
