@@ -27,9 +27,9 @@ type RetailerSiteRelationDisplayedSite struct {
 	ID           int    `gorm:"primary_key;auto_increment" json:"id"`
 	ShipToNumber string `gorm:"not null;size:50" json:"ship_to_number"`
 	ShipToName   string `gorm:"not null;size:50" json:"ship_to_name"`
-	Address_1    string `gorm:"not null;size:30" json:"address_1"`
-	Address_2    string `gorm:"not null;size:30" json:"address_2"`
-	Address_3    string `gorm:"not null;size:30" json:"address_3"`
+	Address1     string `gorm:"not null;size:30" json:"address_1"`
+	Address2     string `gorm:"not null;size:30" json:"address_2"`
+	Address3     string `gorm:"not null;size:30" json:"address_3"`
 	CityID       int    `gorm:"not null" json:"city_id"`
 	City         City   `json:"city"`
 }
@@ -38,9 +38,9 @@ type RetailerSiteRelationDisplayedRetailer struct {
 	ID           int    `gorm:"primary_key;auto_increment" json:"id"`
 	SoldToNumber string `gorm:"not null;size:10" json:"sold_to_number"`
 	SoldToName   string `gorm:"not null; size:60" json:"sold_to_name"`
-	Address_1    string `gorm:"not null;size:30" json:"address_1"`
-	Address_2    string `gorm:"not null;size:30" json:"address_2"`
-	Address_3    string `gorm:"not null;size:30" json:"address_3"`
+	Address1     string `gorm:"not null;size:30" json:"address_1"`
+	Address2     string `gorm:"not null;size:30" json:"address_2"`
+	Address3     string `gorm:"not null;size:30" json:"address_3"`
 	CityID       int    `gorm:"not null" json:"city_id"`
 	City         City   `json:"city"`
 }
@@ -83,16 +83,62 @@ func (retailerSiteRelation *RetailerSiteRelation) UpdateValidate() map[string]st
 	return errorMessages
 }
 
-func (retailerSiteRelation *RetailerSiteRelation) FindAllRetailerSiteRelationByRetailerID(db *gorm.DB, retailerSiteRelationID uint64) (*[]RetailerSiteRelation, error) {
+func (retailerSiteRelation *RetailerSiteRelation) FindAllRetailerSiteRelationByRetailerID(db *gorm.DB, retailerID uint64) (*[]RetailerSiteRelation, error) {
 	var err error
 	retailerSiteRelations := []RetailerSiteRelation{}
-	err = db.Debug().Model(&RetailerSiteRelation{}).Unscoped().Where("retailer_id = ?", retailerSiteRelationID).Order("created_at desc").Find(&retailerSiteRelations).Error
+	err = db.Debug().Model(&RetailerSiteRelation{}).Unscoped().Where("retailer_id = ?", retailerID).Order("created_at desc").Find(&retailerSiteRelations).Error
 	if err != nil {
 		return &[]RetailerSiteRelation{}, err
 	}
 
 	if len(retailerSiteRelations) > 0 {
 		for i, _ := range retailerSiteRelations {
+			siteErr := db.Debug().Model(&RetailerSiteRelationDisplayedSite{}).Unscoped().Where("original_id = ?", retailerSiteRelations[i].SiteID).Order("id desc").Take(&retailerSiteRelations[i].Site).Error
+			if siteErr != nil {
+				return &[]RetailerSiteRelation{}, err
+			}
+
+			if retailerSiteRelations[i].Site.CityID != 0 {
+				err := db.Debug().Model(&City{}).Unscoped().Where("id = ?", retailerSiteRelations[i].Site.CityID).Order("id desc").Take(&retailerSiteRelations[i].Site.City).Error
+				if err != nil {
+					return &[]RetailerSiteRelation{}, err
+				}
+			}
+
+			retailerErr := db.Debug().Model(&RetailerSiteRelationDisplayedRetailer{}).Unscoped().Where("original_id = ?", retailerSiteRelations[i].RetailerID).Order("id desc").Take(&retailerSiteRelations[i].Retailer).Error
+			if retailerErr != nil {
+				return &[]RetailerSiteRelation{}, err
+			}
+
+			if retailerSiteRelations[i].Retailer.CityID != 0 {
+				err := db.Debug().Model(&City{}).Unscoped().Where("id = ?", retailerSiteRelations[i].Retailer.CityID).Order("id desc").Take(&retailerSiteRelations[i].Retailer.City).Error
+				if err != nil {
+					return &[]RetailerSiteRelation{}, err
+				}
+			}
+		}
+	}
+
+	return &retailerSiteRelations, nil
+}
+
+func (retailerSiteRelation *RetailerSiteRelation) FindAllLatestRetailerSiteRelationByRetailerID(db *gorm.DB, retailerID uint64) (*[]RetailerSiteRelation, error) {
+	var err error
+	retailerSiteRelations := []RetailerSiteRelation{}
+	/*err = db.Debug().
+	Model(&RetailerSiteRelation{}).
+	Unscoped().
+	Where("retailer_id = ?", retailerSiteRelationID).
+	Order("created_at desc").
+	Find(&retailerSiteRelations).
+	Error*/
+	err = db.Debug().Raw("EXEC spAPI_RetailerSiteRelation_GetLatest ?", retailerID).Scan(&retailerSiteRelations).Error
+	if err != nil {
+		return &[]RetailerSiteRelation{}, err
+	}
+
+	if len(retailerSiteRelations) > 0 {
+		for i := range retailerSiteRelations {
 			siteErr := db.Debug().Model(&RetailerSiteRelationDisplayedSite{}).Unscoped().Where("original_id = ?", retailerSiteRelations[i].SiteID).Order("id desc").Take(&retailerSiteRelations[i].Site).Error
 			if siteErr != nil {
 				return &[]RetailerSiteRelation{}, err

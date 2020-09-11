@@ -83,6 +83,7 @@ func (s *Server) initializeRoutes() {
 
 		//Retailer Site Relation
 		retailer.GET("/:id/site-relations", s.GetRetailerSiteRelationByRetailerID)
+		retailer.GET("/:id/site-relations/latest", s.GetLatestRetailerSiteRelationByRetailerID)
 		retailer.POST("/:id/site-relation", s.CreateRetailerSiteRelation)
 		retailer.PUT("/:id/site-relation/:relation_id", s.UpdateRetailerSiteRelation)
 		retailer.DELETE("/:id/site-relation/:relation_id", s.UnlinkRetailerSiteRelation)

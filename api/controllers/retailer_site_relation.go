@@ -38,6 +38,33 @@ func (server *Server) GetRetailerSiteRelationByRetailerID(c *gin.Context) {
 	})
 }
 
+//GetLatestRetailerSiteRelationByRetailerID => Get Latest Retailer Site Relation By Retailer ID
+func (server *Server) GetLatestRetailerSiteRelationByRetailerID(c *gin.Context) {
+	retailerID := c.Param("id")
+	convertedRetailerID, err := strconv.ParseUint(retailerID, 10, 64)
+	if err != nil {
+		errList["invalid_request"] = "Invalid request"
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	retailerSiteRelation := models.RetailerSiteRelation{}
+	retailerSiteRelationReceived, err := retailerSiteRelation.FindAllLatestRetailerSiteRelationByRetailerID(server.DB, convertedRetailerID)
+	if err != nil {
+		errList["no_relation"] = "No relation found"
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"response": retailerSiteRelationReceived,
+	})
+}
+
 func (server *Server) CreateRetailerSiteRelation(c *gin.Context) {
 	errList = map[string]string{}
 
