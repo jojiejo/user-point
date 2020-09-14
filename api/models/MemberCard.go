@@ -9,20 +9,19 @@ import (
 
 //MemberCard => Member Card on SHELL FLeet
 type MemberCard struct {
-	CardID                  string     `gorm:"primary_key;auto_increment;column:card_id" json:"card_id"`
+	CardID                  string     `gorm:"column:card_id" json:"card_id"`
 	ExpDate                 string     `json:"exp_date"`
 	CVV                     string     `json:"cvv"`
-	BankCode                int        `json:"bank_code"`
-	CountryCode             int        `json:"country_code"`
+	BankCode                string     `json:"bank_code"`
+	CountryCode             string     `json:"country_code"`
 	Status                  string     `json:"status"`
-	BlockReason             *string    `json:"block_reason"`
-	ActivationDateTime      *time.Time `json:"activation_datetime"`
-	LastTransactionDateTime *time.Time `json:"last_transaction_datetime"`
-	CardGenerationDateTime  time.Time  `json:"card_generation_datetime"`
+	BlockReasonCode         *string    `json:"block_reason_code"`
+	ActivationDateTime      *time.Time `gorm:"column:activation_datetime" json:"activation_datetime"`
+	LastTransactionDateTime *time.Time `gorm:"column:last_transaction_datetime" json:"last_transaction_datetime"`
 	PINOffset               string     `json:"pin_offset"`
 	PINOffsetVersion        int        `json:"pin_offset_version"`
-	PINGenerationDateTime   *time.Time `json:"pin_generation_datetime"`
-	PINChangeDateTime       *time.Time `json:"pin_change_datetime"`
+	PINGenerationDateTime   *time.Time `gorm:"column:pin_generation_datetime" json:"pin_generation_datetime"`
+	PINChangeDateTime       *time.Time `gorm:"column:pin_change_datetime" json:"pin_change_datetime"`
 	Batch                   int        `json:"batch"`
 	FlagFleetID             *int       `json:"flag_fleet_id"`
 	FlagOdometer            *int       `json:"flag_odometer"`
@@ -33,15 +32,13 @@ type MemberCard struct {
 	TelematicDeviceID       string     `json:"telematic_device_id"`
 	TelematicStartedAt      *time.Time `json:"telematic_started_at"`
 	TelematicEndedAt        *time.Time `json:"telematic_ended_at"`
-
-	CreatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
-	DeletedAt *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
+	CreatedAt               time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt               time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	DeletedAt               *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
 }
 
 //Prepare => Prepare Member Card
 func (mc *MemberCard) Prepare() {
-	mc.CardGenerationDateTime = time.Now()
 	mc.CreatedAt = time.Now()
 }
 
@@ -65,12 +62,12 @@ func (mc *MemberCard) Validate() map[string]string {
 		errorMessages["cvv"] = err.Error()
 	}
 
-	if mc.BankCode == 0 {
+	if mc.BankCode == "" {
 		err = errors.New("Bank Code field is required")
 		errorMessages["bank_code"] = err.Error()
 	}
 
-	if mc.CountryCode == 0 {
+	if mc.CountryCode == "" {
 		err = errors.New("CVV field is required")
 		errorMessages["country_code"] = err.Error()
 	}
@@ -133,6 +130,7 @@ func (mc *MemberCard) FindMemberCardByID(db *gorm.DB, cardID string) (*MemberCar
 	return mc, nil
 }
 
+//CreateMemberCard => Create Member Card
 func (mc *MemberCard) CreateMemberCard(db *gorm.DB) (*MemberCard, error) {
 	var err error
 	err = db.Debug().Model(&MemberCard{}).Create(&mc).Error
@@ -146,4 +144,9 @@ func (mc *MemberCard) CreateMemberCard(db *gorm.DB) (*MemberCard, error) {
 	}
 
 	return mc, nil
+}
+
+//TableName => Define Table
+func (MemberCard) TableName() string {
+	return "member_card"
 }

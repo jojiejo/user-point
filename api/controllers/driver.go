@@ -26,7 +26,7 @@ func (server *Server) GetDrivers(c *gin.Context) {
 	}
 
 	stringifiedDrivers, _ := json.Marshal(ds)
-	log.Printf("Get Drivers : ", string(stringifiedDrivers))
+	log.Println("Get Drivers : ", string(stringifiedDrivers))
 	c.JSON(http.StatusOK, gin.H{
 		"response": ds,
 	})
@@ -59,7 +59,7 @@ func (server *Server) GetDriver(c *gin.Context) {
 	}
 
 	stringifiedDriver, _ := json.Marshal(receivedDriver)
-	log.Printf("Get Driver : ", string(stringifiedDriver))
+	log.Println("Get Driver : ", string(stringifiedDriver))
 	c.JSON(http.StatusOK, gin.H{
 		"response": receivedDriver,
 	})

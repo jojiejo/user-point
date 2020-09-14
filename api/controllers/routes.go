@@ -21,14 +21,12 @@ func (s *Server) initializeRoutes() {
 	s.Router.GET("/units", s.GetAllUnits)
 
 	// REPORT
-	// DAILY SALES REPORT
-	// s.Router.GET("/report-daily-sales", s.GetDailySalesReport)
-	s.Router.GET("/report-daily-sales/:report_date", s.GetDailySalesReport)
-	s.Router.GET("/report-monthly-sales/:report_date", s.GetMonthlySalesReport)
-	s.Router.GET("/report-monthly-dass/:report_date", s.GetMonthlyDassReport)
-	s.Router.GET("/report-daily-transaction-customer/:account_name/:report_date", s.GetDailyTransactionCustomerReport)
-	s.Router.GET("/report-daily-transaction-shell/:report_date", s.GetDailyTransactionCustomerReport)
-	s.Router.GET("/report-daily-statement/:sold_to_number/:ship_to_number/:report_date", s.GetDailyStatementReport)
+	s.Router.GET("/report/daily-sales/:report_date", s.GetDailySalesReport)
+	s.Router.GET("/report/monthly-sales/:report_date", s.GetMonthlySalesReport)
+	s.Router.GET("/report/monthly-dass/:report_date", s.GetMonthlyDassReport)
+	s.Router.GET("/report/daily-transaction-customer/:account_name/:report_date", s.GetDailyTransactionCustomerReport)
+	s.Router.GET("/report/daily-transaction-shell/:report_date", s.GetDailyTransactionShellReport)
+	s.Router.GET("/report/daily-statement/:sold_to_number/:ship_to_number/:report_date", s.GetDailyStatementReport)
 
 	//Province
 	s.Router.GET("/provinces", s.GetProvinces)
@@ -151,9 +149,9 @@ func (s *Server) initializeRoutes() {
 	}
 
 	//GSAP Master Data
-	gsap_master_data := s.Router.Group("/gsap-customer-master-data")
+	gsapMasterData := s.Router.Group("/gsap-customer-master-data")
 	{
-		gsap_master_data.GET("/:id", s.GetCustomerMasterData)
+		gsapMasterData.GET("/:id", s.GetCustomerMasterData)
 	}
 
 	//Fee
@@ -282,7 +280,7 @@ func (s *Server) initializeRoutes() {
 	}
 
 	//Driver Card
-	//s.Router.POST("/driver-cards", s.GenerateDriverCards)
+	s.Router.POST("/driver-cards", s.GenerateDriverCards)
 
 	//Vehicle Card
 	//s.Router.POST("/vehicle-cards", s.GenerateVehicleCards)

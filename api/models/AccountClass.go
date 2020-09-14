@@ -88,8 +88,6 @@ func (ac *AccountClass) CreateAccountClass(db *gorm.DB) (*AccountClass, error) {
 func (ac *AccountClass) UpdateAccountClass(db *gorm.DB) (*AccountClass, error) {
 	var err error
 	dateTimeNow := time.Now()
-
-	//Update the data
 	err = db.Debug().Model(&ac).Updates(
 		map[string]interface{}{
 			"code":       ac.Code,

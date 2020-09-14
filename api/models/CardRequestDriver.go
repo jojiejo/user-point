@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-//CardBearerRequest => Struct to contain Card Bearer Request
-type CardRequestBearer struct {
+//CardRequestDriver => Struct to contain Card Driver Request
+type CardRequestDriver struct {
 	Batch          int       `json:"batch"`
 	ExpDate        string    `json:"exp_date"`
 	CardTypeID     int       `json:"card_type_id"`
@@ -18,48 +18,48 @@ type CardRequestBearer struct {
 	ResProfileID   int       `json:"res_profile_id"`
 	SubCorporateID int       `json:"sub_corporate_id"`
 	CCID           int       `json:"cc_id"`
-	CardCount      int       `json:"card_count"`
+	Drivers        []Driver  `json:"drivers"`
 	RequestedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"requested_at"`
 }
 
 //Prepare => Prepare string & datetime
-func (cbr *CardRequestBearer) Prepare() {
-	cbr.ExpDate = html.EscapeString(strings.TrimSpace(cbr.ExpDate))
-	cbr.RequestedAt = time.Now()
+func (crd *CardRequestDriver) Prepare() {
+	crd.ExpDate = html.EscapeString(strings.TrimSpace(crd.ExpDate))
+	crd.RequestedAt = time.Now()
 }
 
 //Validate => Validate given request body
-func (cbr *CardRequestBearer) Validate() map[string]string {
+func (crd *CardRequestDriver) Validate() map[string]string {
 	var err error
 	var errorMessages = make(map[string]string)
 
-	if cbr.CardTypeID == 0 {
+	if crd.CardTypeID == 0 {
 		err = errors.New("Card Type field is required")
 		errorMessages["card_type"] = err.Error()
 	}
 
-	if cbr.ExpDate == "" {
+	if crd.ExpDate == "" {
 		err = errors.New("Expiry Date field is required")
 		errorMessages["exp_date"] = err.Error()
 	}
 
-	if cbr.CardGroupID == 0 {
+	if crd.CardGroupID == 0 {
 		err = errors.New("Card Group ID field is required")
 		errorMessages["card_group"] = err.Error()
 	}
 
-	if cbr.SubCorporateID == 0 {
+	if crd.SubCorporateID == 0 {
 		err = errors.New("Sub Corporate ID field is required")
 		errorMessages["sub_corporate"] = err.Error()
 	}
 
-	if cbr.CCID == 0 {
+	if crd.CCID == 0 {
 		err = errors.New("CC ID field is required")
 		errorMessages["cc_id"] = err.Error()
 	}
 
-	if cbr.CardCount == 0 {
-		err = errors.New("Card Count field is required")
+	if len(crd.Drivers) == 0 {
+		err = errors.New("Driver field is required")
 		errorMessages["card_count"] = err.Error()
 	}
 

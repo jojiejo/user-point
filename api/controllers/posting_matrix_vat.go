@@ -24,7 +24,7 @@ func (server *Server) GetPostingMatrixVAT(c *gin.Context) {
 	}
 
 	stringifiedPmvs, _ := json.Marshal(pmvs)
-	log.Printf("Get Posting Matrix VAT : ", string(stringifiedPmvs))
+	log.Println("Get Posting Matrix VAT : ", string(stringifiedPmvs))
 	c.JSON(http.StatusOK, gin.H{
 		"response": pmvs,
 	})
