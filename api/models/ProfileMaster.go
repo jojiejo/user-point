@@ -9,6 +9,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+//ProfileMaster => Restriction Profile
 type ProfileMaster struct {
 	ResProfileID    uint64     `gorm:"primary_key;auto_increment" json:"res_profile_id"`
 	CardProfileFlag uint32     `json:"card_profile_flag"`
@@ -19,11 +20,13 @@ type ProfileMaster struct {
 	DeletedAt       *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
 }
 
+//Prepare => Prepare Restriction Profile
 func (pm *ProfileMaster) Prepare() {
 	pm.Name = html.EscapeString(strings.TrimSpace(pm.Name))
 	pm.CreatedAt = time.Now()
 }
 
+//Prepare => Validate Restriction Profile
 func (pm *ProfileMaster) Validate() map[string]string {
 	var err error
 	var errorMessages = make(map[string]string)
@@ -46,6 +49,7 @@ func (pm *ProfileMaster) Validate() map[string]string {
 	return errorMessages
 }
 
+//FindProfileMasters => Find Restriction Profile
 func (pm *ProfileMaster) FindProfileMasters(db *gorm.DB) (*[]ProfileMaster, error) {
 	var err error
 	pms := []ProfileMaster{}
@@ -60,6 +64,7 @@ func (pm *ProfileMaster) FindProfileMasters(db *gorm.DB) (*[]ProfileMaster, erro
 	return &pms, nil
 }
 
+//FindProfileMasterByID => Find Restriction Profile by ID
 func (pm *ProfileMaster) FindProfileMasterByID(db *gorm.DB, resProfileID uint64) (*ProfileMaster, error) {
 	var err error
 	err = db.Debug().Model(&ProfileMaster{}).Unscoped().
@@ -74,6 +79,7 @@ func (pm *ProfileMaster) FindProfileMasterByID(db *gorm.DB, resProfileID uint64)
 	return pm, nil
 }
 
+//CreateProfileMaster => Create Restriction Profile by ID
 func (pm *ProfileMaster) CreateProfileMaster(db *gorm.DB) (*ProfileMaster, error) {
 	var err error
 	err = db.Debug().Model(&ProfileMaster{}).Create(&pm).Error
@@ -90,6 +96,7 @@ func (pm *ProfileMaster) CreateProfileMaster(db *gorm.DB) (*ProfileMaster, error
 	return pm, nil
 }
 
+//UpdateProfileMaster => Update Restriction Profile by ID
 func (pm *ProfileMaster) UpdateProfileMaster(db *gorm.DB) (*ProfileMaster, error) {
 	var err error
 	dateTimeNow := time.Now()
@@ -114,4 +121,9 @@ func (pm *ProfileMaster) UpdateProfileMaster(db *gorm.DB) (*ProfileMaster, error
 	}
 
 	return pm, nil
+}
+
+//TableName => Define Table
+func (ProfileMaster) TableName() string {
+	return "mstRestrictionProfile"
 }
