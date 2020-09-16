@@ -146,6 +146,27 @@ func (mc *MemberCard) CreateMemberCard(db *gorm.DB) (*MemberCard, error) {
 	return mc, nil
 }
 
+//MigrateCards => Migrate member card to selected sub corporate and card group
+func (mc *MemberCard) MigrateCards(db *gorm.DB, cardID []string, cardGroupCode int) (int64, error) {
+	var err error
+	dateTimeNow := time.Now()
+
+	//Update the data
+	updateProcess := db.Model(&MemberCard{}).
+		Where("card_id IN ?", cardID).
+		Updates(
+			map[string]interface{}{
+				"card_group_code": cardGroupCode,
+				"updated_at":      dateTimeNow,
+			})
+
+	if updateProcess.Error != nil {
+		return 0, err
+	}
+
+	return updateProcess.RowsAffected, nil
+}
+
 //TableName => Define Table
 func (MemberCard) TableName() string {
 	return "member_card"

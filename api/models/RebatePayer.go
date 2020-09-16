@@ -296,7 +296,7 @@ func (bar *BulkAssignRebate) BulkAssignRebate(db *gorm.DB) (*BulkAssignRebate, m
 	var errorMessages = make(map[string]string)
 
 	if len(bar.RebateCollection) > 0 {
-		for i, _ := range bar.RebateCollection {
+		for i := range bar.RebateCollection {
 			var convertedLineNumber string
 			convertedLineNumber = strconv.Itoa(i + 1)
 

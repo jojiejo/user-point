@@ -42,6 +42,16 @@ func (server *Server) GenerateBearerCards(c *gin.Context) {
 		return
 	}
 
+	errorMessages := crb.Validate()
+	if len(errorMessages) > 0 {
+		log.Println(errorMessages)
+		errList = errorMessages
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
 	//Bank code, bank card number, country code, expiry date
 	bankCode := os.Getenv("CARD_BANK_CODE")
 	//bankCardNumber := os.Getenv("CARD_BANK_CARD_NUMBER")
@@ -149,7 +159,6 @@ func (server *Server) GenerateBearerCards(c *gin.Context) {
 	}
 
 	cardInsertionTrx := server.DB.Begin()
-	var generatedCards []string
 	for i := 1; i <= crb.CardCount; i++ {
 		cardID := crb.CardTypePrefix +
 			crb.CardTypeSuffix +
@@ -197,6 +206,17 @@ func (server *Server) GenerateBearerCards(c *gin.Context) {
 				CardProfileID:    crb.ResProfileID,
 			}
 
+			memberCard.Prepare()
+			errorMessages := memberCard.Validate()
+			if len(errorMessages) > 0 {
+				log.Println(errorMessages)
+				errList = errorMessages
+				c.JSON(http.StatusUnprocessableEntity, gin.H{
+					"error": errList,
+				})
+				return
+			}
+
 			_, err := memberCard.CreateMemberCard(server.DB)
 			if err != nil {
 				cardInsertionTrx.Rollback()
@@ -208,7 +228,34 @@ func (server *Server) GenerateBearerCards(c *gin.Context) {
 				return
 			}
 
-			generatedCards = append(generatedCards, cardID)
+			// Insert Perso
+			cardPerso := models.CardPerso{
+				CCID:   crb.CCID,
+				CardID: validCard,
+			}
+
+			cardPerso.Prepare()
+			errorMessages = cardPerso.Validate()
+			if len(errorMessages) > 0 {
+				log.Println(errorMessages)
+				errList = errorMessages
+				c.JSON(http.StatusUnprocessableEntity, gin.H{
+					"error": errList,
+				})
+				return
+			}
+
+			_, err = cardPerso.CreateCardPerso(server.DB)
+			if err != nil {
+				cardInsertionTrx.Rollback()
+				log.Printf(err.Error())
+				errList["card_generation"] = "Card generation failed. Perso Problem."
+				c.JSON(http.StatusNotFound, gin.H{
+					"error": errList,
+				})
+				return
+			}
+
 			nextCardNumber++
 
 		} else {
@@ -272,8 +319,6 @@ func (server *Server) GenerateBearerCards(c *gin.Context) {
 		}
 	}
 
-	// Insert Perso
-
 	cardInsertionTrx.Commit()
 
 	c.JSON(http.StatusOK, gin.H{
@@ -302,6 +347,17 @@ func (server *Server) GenerateDriverCards(c *gin.Context) {
 	if err != nil {
 		log.Printf(err.Error())
 		errList["unmarshal_error"] = "Cannot unmarshal body"
+		c.JSON(http.StatusUnprocessableEntity, gin.H{
+			"error": errList,
+		})
+		return
+	}
+
+	crd.Prepare()
+	errorMessages := crd.Validate()
+	if len(errorMessages) > 0 {
+		log.Println(errorMessages)
+		errList = errorMessages
 		c.JSON(http.StatusUnprocessableEntity, gin.H{
 			"error": errList,
 		})
@@ -415,8 +471,7 @@ func (server *Server) GenerateDriverCards(c *gin.Context) {
 	}
 
 	cardInsertionTrx := server.DB.Begin()
-	var generatedCards []string
-	for i := 1; i <= len(crd.Drivers); i++ {
+	for i := range crd.Drivers {
 		cardID := crd.CardTypePrefix +
 			crd.CardTypeSuffix +
 			countryCode +
@@ -458,9 +513,20 @@ func (server *Server) GenerateDriverCards(c *gin.Context) {
 				Status:           "INACTIVE",
 				Batch:            nextBatch,
 				CardGroupID:      crd.CardGroupID,
-				CardHolderTypeID: 1,
+				CardHolderTypeID: 2,
 				CardTypeID:       crd.CardTypeID,
 				CardProfileID:    crd.ResProfileID,
+			}
+
+			memberCard.Prepare()
+			errorMessages = memberCard.Validate()
+			if len(errorMessages) > 0 {
+				log.Println(errorMessages)
+				errList = errorMessages
+				c.JSON(http.StatusUnprocessableEntity, gin.H{
+					"error": errList,
+				})
+				return
 			}
 
 			_, err := memberCard.CreateMemberCard(server.DB)
@@ -475,8 +541,61 @@ func (server *Server) GenerateDriverCards(c *gin.Context) {
 			}
 
 			// Insert to Driver to Member Card Relation
+			cardDriverRelation := models.CardDriverRelation{
+				DriverID: crd.Drivers[i].ID,
+				CardID:   validCard,
+			}
 
-			generatedCards = append(generatedCards, cardID)
+			cardDriverRelation.Prepare()
+			errorMessages = cardDriverRelation.Validate()
+			if len(errorMessages) > 0 {
+				log.Println(errorMessages)
+				errList = errorMessages
+				c.JSON(http.StatusUnprocessableEntity, gin.H{
+					"error": errList,
+				})
+				return
+			}
+
+			_, err = cardDriverRelation.CreateCardDriverRelation(server.DB)
+			if err != nil {
+				cardInsertionTrx.Rollback()
+				log.Printf(err.Error())
+				errList["card_generation"] = "Card generation failed. Driver relation Problem."
+				c.JSON(http.StatusNotFound, gin.H{
+					"error": errList,
+				})
+				return
+			}
+
+			// Insert Perso
+			cardPerso := models.CardPerso{
+				CCID:   crd.CCID,
+				CardID: validCard,
+			}
+
+			cardPerso.Prepare()
+			errorMessages = cardPerso.Validate()
+			if len(errorMessages) > 0 {
+				log.Println(errorMessages)
+				errList = errorMessages
+				c.JSON(http.StatusUnprocessableEntity, gin.H{
+					"error": errList,
+				})
+				return
+			}
+
+			_, err = cardPerso.CreateCardPerso(server.DB)
+			if err != nil {
+				cardInsertionTrx.Rollback()
+				log.Printf(err.Error())
+				errList["card_generation"] = "Card generation failed. Perso Problem."
+				c.JSON(http.StatusNotFound, gin.H{
+					"error": errList,
+				})
+				return
+			}
+
 			nextCardNumber++
 
 		} else {
@@ -539,8 +658,6 @@ func (server *Server) GenerateDriverCards(c *gin.Context) {
 		})
 		return
 	}
-
-	// Insert Perso
 
 	cardInsertionTrx.Commit()
 
