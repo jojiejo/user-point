@@ -11,13 +11,15 @@ import (
 
 //ProfileMaster => Restriction Profile
 type ProfileMaster struct {
-	ResProfileID    uint64     `gorm:"primary_key;auto_increment" json:"res_profile_id"`
-	CardProfileFlag uint32     `json:"card_profile_flag"`
-	AllSiteFlag     uint32     `json:"all_site_flag"`
-	Name            string     `json:"name"`
-	CreatedAt       time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt       time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
-	DeletedAt       *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
+	ResProfileID    uint64          `gorm:"primary_key;auto_increment" json:"res_profile_id"`
+	CardProfileFlag uint32          `json:"card_profile_flag"`
+	AllSiteFlag     uint32          `json:"all_site_flag"`
+	Name            string          `gorm:"column:res_profile_name" json:"name"`
+	Notes           string          `json:"notes"`
+	Velocity        ProfileVelocity `gorm:"foreignkey:ResProfileID;references:ResProfileID" json:"velocity"`
+	CreatedAt       time.Time       `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt       time.Time       `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	DeletedAt       *time.Time      `gorm:"default:CURRENT_TIMESTAMP" json:"deleted_at"`
 }
 
 //Prepare => Prepare Restriction Profile
@@ -26,7 +28,7 @@ func (pm *ProfileMaster) Prepare() {
 	pm.CreatedAt = time.Now()
 }
 
-//Prepare => Validate Restriction Profile
+//Validate => Validate Restriction Profile
 func (pm *ProfileMaster) Validate() map[string]string {
 	var err error
 	var errorMessages = make(map[string]string)
@@ -36,12 +38,12 @@ func (pm *ProfileMaster) Validate() map[string]string {
 		errorMessages["name"] = err.Error()
 	}
 
-	if pm.CardProfileFlag != 0 || pm.CardProfileFlag != 1 {
+	if pm.CardProfileFlag != 0 && pm.CardProfileFlag != 1 {
 		err = errors.New("Invalid card profile flag")
 		errorMessages["card_profile_flag"] = err.Error()
 	}
 
-	if pm.AllSiteFlag != 0 || pm.AllSiteFlag != 1 {
+	if pm.AllSiteFlag != 0 && pm.AllSiteFlag != 1 {
 		err = errors.New("Invalid all site flag")
 		errorMessages["all_site_flag"] = err.Error()
 	}
@@ -104,7 +106,8 @@ func (pm *ProfileMaster) UpdateProfileMaster(db *gorm.DB) (*ProfileMaster, error
 	//Update the data
 	err = db.Debug().Model(&pm).Updates(
 		map[string]interface{}{
-			"name":              pm.Name,
+			"res_profile_name":  pm.Name,
+			"notes":             pm.Notes,
 			"card_profile_flag": pm.CardProfileFlag,
 			"all_site_flag":     pm.AllSiteFlag,
 			"updated_at":        dateTimeNow,

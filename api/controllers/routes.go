@@ -106,7 +106,7 @@ func (s *Server) initializeRoutes() {
 	s.Router.GET("/payer-associations", s.GetPayerAssociations)
 	s.Router.GET("/payer-association/:id/payers", s.GetPayerByPayerAssociationID)
 
-	//Payer
+	//Payer [Account]
 	s.Router.GET("/payers", s.GetPayers)
 	payer := s.Router.Group("/payer")
 	{
@@ -119,6 +119,11 @@ func (s *Server) initializeRoutes() {
 
 		//Contact Person
 		payer.GET("/:id/contact-persons", s.GetPayerContactPersons)
+
+		//Payer Profile
+		payer.GET("/:id/restriction-profiles", s.GetProfilePayer)
+		payer.POST("/:id/restriction-profile", s.CreateProfilePayer)
+		payer.PUT("/:id/restriction-profile", s.UpdateProfilePayer)
 	}
 
 	//Payer Contact Person
@@ -290,6 +295,14 @@ func (s *Server) initializeRoutes() {
 
 	//Card Block Reason
 	s.Router.GET("/block-reasons", s.GetCardBlockReasons)
+
+	// Restriction Profile
+	/*resProfile := s.Router.Group("/restriction-profile")
+	{
+		resProfile.GET("/:id", s.GetVehicle)
+		vehicle.POST("/:id", s.CreateVehicle)
+		vehicle.PUT("/:id", s.UpdateVehicle)
+	}*/
 
 	//Rebate
 	s.Router.GET("/rebate/calculation-types", s.GetRebateCalculationTypes)
