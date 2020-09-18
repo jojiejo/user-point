@@ -2,15 +2,13 @@ package models
 
 import "github.com/jinzhu/gorm"
 
+//CardStatus => Card Status
 type CardStatus struct {
 	ID   int    `gorm:"primary_key:true;auto_increment" json:"id"`
 	Name string `gorm:"not null;" json:"name"`
 }
 
-func (CardStatus) TableName() string {
-	return "card_status"
-}
-
+//FindAllCardStatus => Find All Card Status
 func (cs *CardStatus) FindAllCardStatus(db *gorm.DB) (*[]CardStatus, error) {
 	var err error
 	css := []CardStatus{}
@@ -20,4 +18,9 @@ func (cs *CardStatus) FindAllCardStatus(db *gorm.DB) (*[]CardStatus, error) {
 	}
 
 	return &css, nil
+}
+
+//TableName => Define table name
+func (CardStatus) TableName() string {
+	return "member_card_status"
 }

@@ -20,7 +20,7 @@ func (s *Server) initializeRoutes() {
 	//Unit
 	s.Router.GET("/units", s.GetAllUnits)
 
-	// REPORT
+	//Report
 	s.Router.GET("/report/daily-sales/:report_date", s.GetDailySalesReport)
 	s.Router.GET("/report/monthly-sales/:report_date", s.GetMonthlySalesReport)
 	s.Router.GET("/report/monthly-dass/:report_date", s.GetMonthlyDassReport)
@@ -287,6 +287,9 @@ func (s *Server) initializeRoutes() {
 
 	//Bearer Card
 	s.Router.POST("/bearer-cards", s.GenerateBearerCards)
+
+	//Card Block Reason
+	s.Router.GET("/block-reasons", s.GetCardBlockReasons)
 
 	//Rebate
 	s.Router.GET("/rebate/calculation-types", s.GetRebateCalculationTypes)
