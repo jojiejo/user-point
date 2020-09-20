@@ -3,3 +3,6 @@
 
 # Ignore Execution File
 *.exe
+
+# Ignore Env
+*.env
