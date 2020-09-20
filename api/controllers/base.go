@@ -42,7 +42,7 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 	)
 
 	// Set Foreign Key
-	server.DB.Model(&models.UserPoint{}).AddForeignKey("user_id", "user(id)", "RESTRICT", "RESTRICT")
+	//server.DB.Model(&models.UserPoint{}).AddForeignKey("user_id", "user(id)", "RESTRICT", "RESTRICT")
 
 	gin.SetMode(gin.ReleaseMode)
 	server.Router = gin.Default()

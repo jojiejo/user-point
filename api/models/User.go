@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/badoux/checkmail"
 	"github.com/jinzhu/gorm"
 )
 
@@ -34,6 +35,13 @@ func (u *User) ValidateInsertion() map[string]string {
 	if u.Email == "" {
 		err = errors.New("Email is required")
 		errorMessages["email"] = err.Error()
+	}
+
+	if u.Email != "" {
+		if err = checkmail.ValidateFormat(u.Email); err != nil {
+			err = errors.New("Invalid Email")
+			errorMessages["email"] = err.Error()
+		}
 	}
 
 	return errorMessages
