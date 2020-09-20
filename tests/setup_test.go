@@ -47,3 +47,99 @@ func Database() {
 		fmt.Printf("We are connected to the %s database", DbDriver)
 	}
 }
+
+func refreshUserTable() error {
+	err := server.DB.DropTableIfExists(&models.User{}).Error
+	if err != nil {
+		return err
+	}
+
+	err = server.DB.AutoMigrate(&models.User{}).Error
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Successfully refreshing user table")
+	return nil
+}
+
+func seedUser() (models.User, error) {
+	user := models.User{
+		Email: "djodi.ramadhan@example.com",
+	}
+
+	err := server.DB.Model(&models.User{}).Create(&user).Error
+	if err != nil {
+		return models.User{}, err
+	}
+
+	return user, nil
+}
+
+func seedUsers() ([]models.User, error) {
+	var err error
+	if err != nil {
+		return nil, err
+	}
+	users := []models.User{
+		models.User{
+			Email: "djodi@example.com",
+		},
+		models.User{
+			Email: "ramadhan@example.com",
+		},
+	}
+
+	for i := range users {
+		err := server.DB.Model(&models.User{}).Create(&users[i]).Error
+		if err != nil {
+			return []models.User{}, err
+		}
+	}
+
+	return users, nil
+}
+
+func sefreshUserAndUserPointTable() error {
+	err := server.DB.DropTableIfExists(&models.UserPoint{}, &models.User{}).Error
+	if err != nil {
+		return err
+	}
+
+	err = server.DB.AutoMigrate(&models.UserPoint{}, &models.User{}).Error
+	if err != nil {
+		return err
+	}
+
+	err = server.DB.Model(&models.UserPoint{}).AddForeignKey("user_id", "user(id)", "RESTRICT", "RESTRICT").Error
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Successfully refreshing user and user point tables")
+	return nil
+}
+
+func seedUserAndUserPoint() (models.User, models.UserPoint, error) {
+
+	user := models.User{
+		Email: "djodi@example.com",
+	}
+
+	err := server.DB.Model(&models.User{}).Create(&user).Error
+	if err != nil {
+		return models.User{}, models.UserPoint{}, err
+	}
+
+	userPoint := models.UserPoint{
+		Value:  -10,
+		UserID: user.ID,
+	}
+
+	err = server.DB.Model(&models.UserPoint{}).Create(&userPoint).Error
+	if err != nil {
+		return models.User{}, models.UserPoint{}, err
+	}
+
+	return user, userPoint, nil
+}
