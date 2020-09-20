@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jinzhu/gorm"
 	"github.com/jojiejo/user-point/api/security"
 )
 
@@ -78,6 +79,69 @@ func (u *User) ValidateUpdatePoint() map[string]string {
 	}
 
 	return errorMessages
+}
+
+//FindAllUsers => Find all users
+func (u *User) FindAllUsers(db *gorm.DB) (*[]User, error) {
+	var err error
+	users := []User{}
+	err = db.Debug().
+		Model(&User{}).
+		Order("id, created_at desc").
+		Find(&users).
+		Error
+
+	if err != nil {
+		return &[]User{}, err
+	}
+
+	return &users, nil
+}
+
+//FindUserByID => Find user by ID
+func (u *User) FindUserByID(db *gorm.DB, ID uint64) (*User, error) {
+	var err error
+	err = db.Debug().
+		Model(&User{}).
+		Where("id = ?", ID).
+		Order("created_at desc").
+		Take(&u).
+		Error
+
+	if err != nil {
+		return &User{}, err
+	}
+
+	return u, nil
+}
+
+//CreateUser => Create user
+func (u *User) CreateUser(db *gorm.DB) (*User, error) {
+	var err error
+	err = db.Debug().
+		Model(&User{}).
+		Create(&u).
+		Error
+
+	if err != nil {
+		return &User{}, err
+	}
+
+	return u, nil
+}
+
+//DeleteUser => Delete user
+func (u *User) DeleteUser(db *gorm.DB) (int64, error) {
+	db = db.Debug().
+		Model(&User{}).
+		Where("id = ?", u.ID).
+		Delete(&User{})
+
+	if db.Error != nil {
+		return 0, db.Error
+	}
+
+	return db.RowsAffected, nil
 }
 
 //TableName => Define tablename
