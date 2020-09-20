@@ -48,5 +48,5 @@ go run main.go
 Or you can build the application by using this command below.
 
 ```bash
-go run main.go
+go build main.go
 ```
