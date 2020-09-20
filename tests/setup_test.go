@@ -26,7 +26,6 @@ func TestMain(m *testing.M) {
 	Database()
 
 	os.Exit(m.Run())
-
 }
 
 func Database() {

@@ -5,8 +5,8 @@ import (
 	"log"
 	"os"
 
-	"fleethub.shell.co.id/api/controllers"
 	"github.com/joho/godotenv"
+	"github.com/jojiejo/user-point/api/controllers"
 )
 
 var server = controllers.Server{}
@@ -18,11 +18,12 @@ func init() {
 	}
 }
 
+//Run => Run the server
 func Run() {
 	var err error
 
 	//Init Log File
-	logFile, err := os.OpenFile("shell-lombok.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	logFile, err := os.OpenFile("user-point.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("Error opening log file: %v", err)
 	}

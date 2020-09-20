@@ -3,10 +3,11 @@ package middlewares
 import (
 	"net/http"
 
-	"fleethub.shell.co.id/api/auth"
 	"github.com/gin-gonic/gin"
+	"github.com/jojiejo/user-point/api/auth"
 )
 
+//TokenAuthMiddleware => Authentication Token
 func TokenAuthMiddleware() gin.HandlerFunc {
 	errList := make(map[string]string)
 	return func(c *gin.Context) {
@@ -23,7 +24,7 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 	}
 }
 
-// CORSMiddleware enables using React end-point
+// CORSMiddleware => enables using React end-point
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")

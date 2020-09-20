@@ -1,8 +1,6 @@
 package main
 
-import (
-	"fleethub.shell.co.id/api"
-)
+import "github.com/jojiejo/user-point/api"
 
 func main() {
 	api.Run()
