@@ -1,21 +1,22 @@
 package models
 
 import (
+	"errors"
 	"html"
 	"strings"
 	"time"
 
-	"github.com/jinzhu/gorm"
 	"github.com/jojiejo/user-point/api/security"
 )
 
 //User => User of this system
 type User struct {
-	ID        uint32    `gorm:"primary_key;auto_increment" json:"id"`
-	Email     string    `gorm:"size:100;not null;unique" json:"email"`
-	Password  string    `gorm:"size:100;not null;" json:"password"`
-	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	ID        uint32     `gorm:"primary_key;auto_increment" json:"id"`
+	Email     string     `gorm:"size:100;not null;unique" json:"email"`
+	Password  string     `gorm:"size:100;not null;" json:"-"`
+	CreatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	DeletedAt *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 //HashPassword => Hash Password of User
@@ -35,35 +36,51 @@ func (u *User) Prepare() {
 	u.UpdatedAt = time.Now()
 }
 
-//Validate => Validate the input
-func (u *User) ValidateInsertion() {
+//ValidateInsertion => Validate the input when insert data
+func (u *User) ValidateInsertion() map[string]string {
 	var errorMessages = make(map[string]string)
 	var err error
-}
 
-//ValidateUpdate =>
-func (u *User) ValidateUpdate() {
-	var errorMessages = make(map[string]string)
-	var err error
-}
-
-//ValidateUpdatePoint
-func (u *User) ValidateInsertion() {
-	var errorMessages = make(map[string]string)
-	var err error
-}
-
-func (unit *Unit) FindAllUnits(db *gorm.DB) (*[]Unit, error) {
-	var err error
-	units := []Unit{}
-	err = db.Debug().Model(&Unit{}).Limit(100).Order("id asc").Find(&units).Error
-	if err != nil {
-		return &[]Unit{}, err
+	if u.Email == "" {
+		err = errors.New("Email is required")
+		errorMessages["email"] = err.Error()
 	}
 
-	return &units, nil
+	if u.Password == "" {
+		err = errors.New("Password is required")
+		errorMessages["password"] = err.Error()
+	}
+
+	return errorMessages
 }
 
-func (Unit) TableName() string {
-	return "unit"
+//ValidateUpdate => Validate the input when update user data
+func (u *User) ValidateUpdate() map[string]string {
+	var errorMessages = make(map[string]string)
+	var err error
+
+	if u.ID == 0 {
+		err = errors.New("ID is required")
+		errorMessages["email"] = err.Error()
+	}
+
+	return errorMessages
+}
+
+//ValidateUpdatePoint => Validate the input when update point
+func (u *User) ValidateUpdatePoint() map[string]string {
+	var errorMessages = make(map[string]string)
+	var err error
+
+	if u.ID == 0 {
+		err = errors.New("ID is required")
+		errorMessages["email"] = err.Error()
+	}
+
+	return errorMessages
+}
+
+//TableName => Define tablename
+func (User) TableName() string {
+	return "user"
 }

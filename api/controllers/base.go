@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/jojiejo/user-point/api/middlewares"
+	"github.com/jojiejo/user-point/api/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -24,7 +25,7 @@ var errList = make(map[string]string)
 func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, DbName string) {
 	var err error
 
-	// INITIALIZE DB CONNECTION
+	// Initialize DB Connection
 	DBURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local", DbUser, DbPassword, DbHost, DbPort, DbName)
 	server.DB, err = gorm.Open(Dbdriver, DBURL)
 	if err != nil {
@@ -33,6 +34,11 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 	} else {
 		log.Printf("The service has been connected to the %s database", Dbdriver)
 	}
+
+	// Database Migration
+	server.DB.Debug().AutoMigrate(
+		&models.User{},
+	)
 
 	gin.SetMode(gin.ReleaseMode)
 	server.Router = gin.Default()
