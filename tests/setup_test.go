@@ -100,7 +100,7 @@ func seedUsers() ([]models.User, error) {
 	return users, nil
 }
 
-func sefreshUserAndUserPointTable() error {
+func refreshUserAndUserPointTable() error {
 	err := server.DB.DropTableIfExists(&models.UserPoint{}, &models.User{}).Error
 	if err != nil {
 		return err
