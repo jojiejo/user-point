@@ -7,27 +7,16 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/jojiejo/user-point/api/security"
 )
 
 //User => User of this system
 type User struct {
-	ID        uint32     `gorm:"primary_key;auto_increment" json:"id"`
-	Email     string     `gorm:"size:100;not null;unique" json:"email"`
-	Password  string     `gorm:"size:100;not null;" json:"-"`
-	CreatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	UpdatedAt time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
-	DeletedAt *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
-}
-
-//HashPassword => Hash Password of User
-func (u *User) HashPassword() error {
-	hashedPassword, err := security.Hash(u.Password)
-	if err != nil {
-		return err
-	}
-	u.Password = string(hashedPassword)
-	return nil
+	ID           uint32     `gorm:"primary_key;auto_increment" json:"id"`
+	Email        string     `gorm:"size:100;not null;unique" json:"email"`
+	CurrentPoint float32    `gorm:"not null" json:"current_point"`
+	CreatedAt    time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt    time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	DeletedAt    *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
 }
 
 //Prepare => Prepare the string & time
@@ -45,11 +34,6 @@ func (u *User) ValidateInsertion() map[string]string {
 	if u.Email == "" {
 		err = errors.New("Email is required")
 		errorMessages["email"] = err.Error()
-	}
-
-	if u.Password == "" {
-		err = errors.New("Password is required")
-		errorMessages["password"] = err.Error()
 	}
 
 	return errorMessages

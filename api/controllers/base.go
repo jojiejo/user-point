@@ -10,7 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql" //Ms. SQL driver
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 //Server => Struct of Server Attributes
@@ -38,7 +38,11 @@ func (server *Server) Initialize(Dbdriver, DbUser, DbPassword, DbPort, DbHost, D
 	// Database Migration
 	server.DB.Debug().AutoMigrate(
 		&models.User{},
+		&models.UserPoint{},
 	)
+
+	// Set Foreign Key
+	server.DB.Model(&models.UserPoint{}).AddForeignKey("user_id", "user(id)", "RESTRICT", "RESTRICT")
 
 	gin.SetMode(gin.ReleaseMode)
 	server.Router = gin.Default()
