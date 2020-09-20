@@ -6,15 +6,16 @@ import (
 	"os"
 	"testing"
 
-	"fleethub.shell.co.id/api/controllers"
-	"fleethub.shell.co.id/api/models"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql" //Ms. SQL driver
 	"github.com/joho/godotenv"
+	"github.com/jojiejo/user-point/api/controllers"
+	"github.com/jojiejo/user-point/api/models"
 )
 
 var server = controllers.Server{}
-var siteInstance = models.Site{}
+var userInstance = models.User{}
+var userPointInstance = models.UserPoint{}
 
 func TestMain(m *testing.M) {
 	var err error
@@ -32,7 +33,12 @@ func Database() {
 	var err error
 
 	DbDriver := os.Getenv("DB_DRIVER")
-	DBURL := fmt.Sprintf("sqlserver://%s:%s@%s:%s?database=%s", os.Getenv("DB_USER"), os.Getenv("DB_PASSWORD"), os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_NAME"))
+	DBURL := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=True&loc=Local",
+		os.Getenv("DB_USER"),
+		os.Getenv("DB_PASSWORD"),
+		os.Getenv("DB_HOST"),
+		os.Getenv("DB_PORT"),
+		os.Getenv("DB_NAME"))
 	server.DB, err = gorm.Open(DbDriver, DBURL)
 	if err != nil {
 		fmt.Printf("Cannot connect to %s database", DbDriver)
