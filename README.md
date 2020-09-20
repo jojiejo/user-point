@@ -31,7 +31,7 @@ Install the project dependencies using go mod.
 go mod tidy
 ```
 
-Create a copy of .env file.
+Create a copy of .env file. Afterwards, you have to fill up .env with your environment variables. (For example, database server, port and name)
 
 ```bash
 cp .env.example .env
