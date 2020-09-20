@@ -4,14 +4,14 @@ func (s *Server) initializeRoutes() {
 	api := s.Router.Group("/api")
 	{
 		//User
-		s.Router.GET("/users", s.GetUsers)
-		user := s.Router.Group("/api/user")
+		api.GET("/users", s.GetUsers)
+		user := api.Group("/user")
 		{
-			user.GET("/:id", s.GetUser)
-			/*user.GET("/:id/points", s.GetUserPoint)
-			user.PUT("/:id", s.UpdateUser)
-			user.PUT("/:id/patch", s.UpdateUserPoint)
-			user.DELETE(":/id", s.DeleteUser)*/
+			user.GET("/:id", s.GetUserByID)
+			user.GET("/:id/point-history", s.GetUserPointByUserID)
+			user.POST("/", s.CreateUser)
+			user.PATCH("/:id/point", s.UpdateUserPoint)
+			user.DELETE("/:id", s.DeleteUser)
 		}
 	}
 }

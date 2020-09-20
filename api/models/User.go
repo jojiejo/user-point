@@ -11,12 +11,12 @@ import (
 
 //User => User of this system
 type User struct {
-	ID           uint32     `gorm:"primary_key;auto_increment" json:"id"`
+	ID           uint64     `gorm:"primary_key;auto_increment" json:"id"`
 	Email        string     `gorm:"size:100;not null;unique" json:"email"`
-	CurrentPoint float32    `gorm:"not null" json:"current_point"`
+	CurrentPoint float32    `gorm:"not null;default:0" json:"current_point"`
 	CreatedAt    time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 	UpdatedAt    time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
-	DeletedAt    *time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"updated_at"`
+	DeletedAt    *time.Time `json:"deleted_at"`
 }
 
 //Prepare => Prepare the string & time
@@ -33,32 +33,6 @@ func (u *User) ValidateInsertion() map[string]string {
 
 	if u.Email == "" {
 		err = errors.New("Email is required")
-		errorMessages["email"] = err.Error()
-	}
-
-	return errorMessages
-}
-
-//ValidateUpdate => Validate the input when update user data
-func (u *User) ValidateUpdate() map[string]string {
-	var errorMessages = make(map[string]string)
-	var err error
-
-	if u.ID == 0 {
-		err = errors.New("ID is required")
-		errorMessages["email"] = err.Error()
-	}
-
-	return errorMessages
-}
-
-//ValidateUpdatePoint => Validate the input when update point
-func (u *User) ValidateUpdatePoint() map[string]string {
-	var errorMessages = make(map[string]string)
-	var err error
-
-	if u.ID == 0 {
-		err = errors.New("ID is required")
 		errorMessages["email"] = err.Error()
 	}
 
@@ -107,6 +81,28 @@ func (u *User) CreateUser(db *gorm.DB) (*User, error) {
 		Create(&u).
 		Error
 
+	if err != nil {
+		return &User{}, err
+	}
+
+	return u, nil
+}
+
+//UpdateUserPoint => Update user point
+func (u *User) UpdateUserPoint(db *gorm.DB) (*User, error) {
+	var err error
+	dateTimeNow := time.Now()
+	err = db.Debug().Model(&u).Updates(
+		map[string]interface{}{
+			"current_point": u.CurrentPoint,
+			"updated_at":    dateTimeNow,
+		}).Error
+
+	if err != nil {
+		return &User{}, err
+	}
+
+	_, err = u.FindUserByID(db, u.ID)
 	if err != nil {
 		return &User{}, err
 	}
